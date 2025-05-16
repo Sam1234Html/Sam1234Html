@@ -1,0 +1,7 @@
+def add_line_numbers(input_filename, output_filename):
+    """Reads a file, adds line numbers, and writes to a new file."""
+    try:
+        with open(input_filename, 'r') as infile, open(output_filename, 'w') as outfile:
+            for i, line in enumerate(infile, 1):
+                outfile.write(f"{i}: {line}")
+        print(f"
