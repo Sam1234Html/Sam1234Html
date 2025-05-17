@@ -1,158 +1,237 @@
+# -*- coding: utf-8 -*-
+"""
+COVID-19 Global Data Analysis Report
+
+This notebook loads, cleans, analyzes, and visualizes global COVID-19 data
+obtained from Our World in Data. The report aims to provide insights into
+the trends of cases, deaths, and vaccinations across different countries.
+"""
+
+# ## 1. Import Libraries
+
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Task 1: Load and Explore the Dataset
-# Assuming the dataset is named 'your_dataset.csv' and is in the same directory
+# Set a visually appealing style for plots
+sns.set_style("whitegrid")
+plt.rcParams['figure.figsize'] = (12, 6)
+plt.rcParams['font.size'] = 10
+
+# ## 2. Load the Dataset
+
+# Specify the URL for the Our World in Data COVID-19 dataset
+data_url = "https://covid.ourworldindata.org/data/owid-covid-data.csv"
+
 try:
-    df = pd.read_csv('your_dataset.csv')
-    print("Dataset loaded successfully!")
-except FileNotFoundError:
-    print("Error: 'your_dataset.csv' not found. Please make sure the file is in the correct directory or provide the correct path.")
-    exit()
+    df = pd.read_csv(data_url)
+    print("Data loaded successfully!")
+except Exception as e:
+    print(f"Error loading data: {e}")
+    # It's good practice to have an empty DataFrame in case of an error
+    df = pd.DataFrame()
 
-print("\nFirst few rows of the dataset:")
-print(df.head())
+# ## 3. Initial Data Exploration
 
-print("\nDataset information:")
-df.info()
+if not df.empty:
+    print("\nFirst few rows of the dataframe:")
+    print(df.head())
 
-print("\nMissing values:")
-print(df.isnull().sum())
+    print("\nInformation about the dataframe:")
+    df.info()
 
-# Handle missing values (example: fill with mean for numerical columns, mode for categorical)
-for column in df.columns:
-    if df[column].isnull().any():
-        if pd.api.types.is_numeric_dtype(df[column]):
-            df[column].fillna(df[column].mean(), inplace=True)
-            print(f"Missing values in '{column}' filled with the mean.")
-        else:
-            df[column].fillna(df[column].mode()[0], inplace=True)
-            print(f"Missing values in '{column}' filled with the mode.")
+    print("\nSummary statistics of numerical columns:")
+    print(df.describe())
 
-print("\nMissing values after handling:")
-print(df.isnull().sum())
+    print("\nNumber of unique locations:", df['location'].nunique())
 
-# Task 2: Basic Data Analysis
-print("\nTask 2: Basic Data Analysis")
+# ## 4. Data Cleaning and Preparation
 
-# 1. Compute basic statistics of numerical columns
-print("\nBasic statistics of numerical columns:")
-print(df.describe())
+if not df.empty:
+    # Convert date column to datetime objects
+    df['date'] = pd.to_datetime(df['date'])
 
-# Identify a categorical column for grouping (replace 'categorical_column' with an actual column name)
-categorical_column = None
-for col in df.columns:
-    if pd.api.types.is_object_dtype(df[col]) or pd.api.types.is_categorical_dtype(df[col]):
-        categorical_column = col
-        break
+    # Filter for relevant columns (you can add more as needed)
+    relevant_columns = ['date', 'location', 'total_cases', 'new_cases',
+                        'total_deaths', 'new_deaths', 'total_vaccinations',
+                        'new_vaccinations', 'population', 'continent']
+    df_cleaned = df[relevant_columns].copy()
 
-if categorical_column:
-    print(f"\nPerforming groupings on the categorical column: '{categorical_column}'")
-    # Identify a numerical column to compute the mean for each group (replace 'numerical_column' with an actual column name)
-    numerical_column_for_grouping = None
-    for col in df.columns:
-        if pd.api.types.is_numeric_dtype(df[col]) and col != 'count': # Avoid count from describe()
-            numerical_column_for_grouping = col
-            break
+    # Handle missing values (imputation or removal)
+    # For simplicity, let's fill numerical NaNs with 0 and categorical with 'Unknown'
+    numerical_cols = df_cleaned.select_dtypes(include=np.number).columns
+    categorical_cols = df_cleaned.select_dtypes(include='object').columns
 
-    if numerical_column_for_grouping:
-        # 2. Perform groupings and compute the mean
-        grouped_mean = df.groupby(categorical_column)[numerical_column_for_grouping].mean()
-        print(f"\nMean of '{numerical_column_for_grouping}' for each '{categorical_column}':")
-        print(grouped_mean)
+    df_cleaned[numerical_cols] = df_cleaned[numerical_cols].fillna(0)
+    df_cleaned[categorical_cols] = df_cleaned[categorical_cols].fillna('Unknown')
 
-        # 3. Identify any patterns or interesting findings (example)
-        print("\nInteresting Findings (Example):")
-        print(f"The average '{numerical_column_for_grouping}' varies across different '{categorical_column}'.")
-        if grouped_mean.max() > grouped_mean.min():
-            category_max_mean = grouped_mean.idxmax()
-            category_min_mean = grouped_mean.idxmin()
-            print(f"The category '{category_max_mean}' has the highest average '{numerical_column_for_grouping}'.")
-            print(f"The category '{category_min_mean}' has the lowest average '{numerical_column_for_grouping}'.")
+    print("\nCleaned dataframe information:")
+    df_cleaned.info()
+
+    # Optional: Filter for specific countries if needed for initial analysis
+    # selected_countries = ['Kenya', 'United States', 'India']
+    # df_selected = df_cleaned[df_cleaned['location'].isin(selected_countries)]
+
+# ## 5. Exploratory Data Analysis (EDA)
+
+if not df_cleaned.empty:
+    # --- Trends in Total Cases and Deaths Over Time ---
+    plt.figure(figsize=(15, 7))
+    sns.lineplot(data=df_cleaned[df_cleaned['location'] == 'World'], x='date', y='total_cases', label='Total Cases')
+    sns.lineplot(data=df_cleaned[df_cleaned['location'] == 'World'], x='date', y='total_deaths', label='Total Deaths')
+    plt.title('Global Total COVID-19 Cases and Deaths Over Time')
+    plt.xlabel('Date')
+    plt.ylabel('Number of Cases/Deaths')
+    plt.legend()
+    plt.show()
+
+    # --- New Cases and Deaths by Continent (Latest Date) ---
+    latest_data = df_cleaned.loc[df_cleaned.groupby('location')['date'].idxmax()]
+    continent_summary = latest_data.groupby('continent')[['new_cases', 'new_deaths']].sum().reset_index()
+
+    fig, axes = plt.subplots(1, 2, figsize=(18, 6))
+    sns.barplot(data=continent_summary, x='continent', y='new_cases', ax=axes[0])
+    axes[0].set_title('Total New Cases by Continent (Latest Data)')
+    axes[0].set_xlabel('Continent')
+    axes[0].set_ylabel('Total New Cases')
+
+    sns.barplot(data=continent_summary, x='continent', y='new_deaths', ax=axes[1])
+    axes[1].set_title('Total New Deaths by Continent (Latest Data)')
+    axes[1].set_xlabel('Continent')
+    axes[1].set_ylabel('Total New Deaths')
+    plt.tight_layout()
+    plt.show()
+
+    # --- Vaccination Progress (Latest Data) ---
+    vaccination_data = latest_data[latest_data['total_vaccinations'] > 0].sort_values(by='total_vaccinations', ascending=False).head(10)
+    plt.figure(figsize=(14, 7))
+    sns.barplot(data=vaccination_data, y='location', x='total_vaccinations')
+    plt.title('Top 10 Countries by Total Vaccinations (Latest Data)')
+    plt.xlabel('Total Vaccinations')
+    plt.ylabel('Country')
+    plt.tight_layout()
+    plt.show()
+
+    # --- Optional: Correlation Heatmap (if you have relevant numerical features) ---
+    numerical_eda_cols = ['total_cases', 'new_cases', 'total_deaths', 'new_deaths', 'total_vaccinations', 'new_vaccinations', 'population']
+    correlation_matrix = df_cleaned[numerical_eda_cols].corr()
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f")
+    plt.title('Correlation Matrix of COVID-19 Related Features')
+    plt.show()
+
+# ## 6. Calculating Critical Indicators
+
+if not df_cleaned.empty:
+    # Calculate death rate (total deaths / total cases)
+    global_latest = df_cleaned[df_cleaned['location'] == 'World'].iloc[-1]
+    if global_latest['total_cases'] > 0:
+        global_death_rate = (global_latest['total_deaths'] / global_latest['total_cases']) * 100
+        print(f"\nGlobal Death Rate (as of {global_latest['date'].strftime('%Y-%m-%d')}): {global_death_rate:.2f}%")
     else:
-        print("No suitable numerical column found for grouping analysis.")
-else:
-    print("No categorical column found for grouping analysis.")
+        print("\nGlobal Total Cases are zero, cannot calculate death rate.")
 
-# Task 3: Data Visualization
-print("\nTask 3: Data Visualization")
+    # You can calculate other indicators like vaccination coverage as well
+    # Example: Percentage of population vaccinated (using the latest data)
+    latest_pop_vaccination = latest_data[latest_data['total_vaccinations'] > 0][['location', 'total_vaccinations', 'population']].copy()
+    latest_pop_vaccination['vaccination_coverage'] = (latest_pop_vaccination['total_vaccinations'] / latest_pop_vaccination['population']) * 100
+    latest_pop_vaccination_sorted = latest_pop_vaccination.sort_values(by='vaccination_coverage', ascending=False).head(10)
 
-# Ensure there are numerical and categorical columns for visualization
-numerical_cols = df.select_dtypes(include=['number']).columns.tolist()
-categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+    plt.figure(figsize=(14, 7))
+    sns.barplot(data=latest_pop_vaccination_sorted, y='location', x='vaccination_coverage')
+    plt.title('Top 10 Countries by Vaccination Coverage (Latest Data)')
+    plt.xlabel('Percentage of Population Vaccinated')
+    plt.ylabel('Country')
+    plt.tight_layout()
+    plt.show()
 
-if len(numerical_cols) >= 2 and categorical_cols:
-    # 1. Create at least four different types of visualizations
+# ## 7. Presenting Insights and Narrative
 
-    # a) Line chart (showing trends over time - assuming a time-related column exists)
-    time_column = None
-    for col in df.columns:
-        if 'date' in col.lower() or 'year' in col.lower():
-            time_column = col
-            break
+"""
+### Key Insights:
 
-    if time_column and len(numerical_cols) > 0:
-        plt.figure(figsize=(10, 6))
-        plt.plot(df[time_column], df[numerical_cols[0]])
-        plt.title(f'Trend of {numerical_cols[0]} over Time')
-        plt.xlabel(time_column)
-        plt.ylabel(numerical_cols[0])
-        plt.grid(True)
+- **Global Trends:** [Summarize the trends observed in total cases and deaths over time.
+  Mention any significant waves or changes in the trend.]
+
+- **Continental Comparison:** [Discuss the differences in new cases and deaths across continents
+  based on the latest available data.]
+
+- **Vaccination Progress:** [Highlight the countries with the highest total vaccinations and
+  discuss the vaccination coverage.]
+
+- **Critical Indicators:** [Present the calculated global death rate and any other relevant
+  indicators. Interpret what these numbers mean.]
+
+- **Optional Further Analysis:** [Mention any potential next steps for analysis, such as
+  exploring specific country trends, the impact of interventions, or the relationship
+  between different variables.]
+
+### Narrative:
+
+[Provide a clear and concise narrative that connects the code, visualizations, and
+insights. Explain the rationale behind the analysis steps and the key takeaways
+from the findings. Use clear and accessible language.]
+"""
+
+# ## 8. Optional Stretch Goals (Adapt as needed)
+
+# ### 8.1 Allow User Input
+
+"""
+import ipywidgets as widgets
+from IPython.display import display
+
+country_widget = widgets.Dropdown(
+    options=df_cleaned['location'].unique(),
+    description='Select Country:',
+    disabled=False,
+)
+display(country_widget)
+
+date_range_widget = widgets.DatePickerRange(
+    description='Select Date Range:',
+    disabled=False
+)
+display(date_range_widget)
+
+def plot_country_data(country, date_range):
+    start_date, end_date = date_range
+    country_df = df_cleaned[(df_cleaned['location'] == country) & (df_cleaned['date'] >= pd.to_datetime(start_date)) & (df_cleaned['date'] <= pd.to_datetime(end_date))]
+    if not country_df.empty:
+        plt.figure(figsize=(12, 6))
+        plt.plot(country_df['date'], country_df['total_cases'], label='Total Cases')
+        plt.plot(country_df['date'], country_df['total_deaths'], label='Total Deaths')
+        plt.xlabel('Date')
+        plt.ylabel('Number')
+        plt.title(f'COVID-19 Trends in {country} ({start_date} to {end_date})')
+        plt.legend()
         plt.show()
     else:
-        print("Could not create a line chart. No suitable time-related column found.")
+        print(f"No data available for {country} within the selected date range.")
 
-    # b) Bar chart (showing the comparison of a numerical value across categories)
-    if categorical_cols and len(numerical_cols) > 0:
-        plt.figure(figsize=(10, 6))
-        sns.barplot(x=categorical_cols[0], y=numerical_cols[0], data=df)
-        plt.title(f'Comparison of {numerical_cols[0]} across {categorical_cols[0]}')
-        plt.xlabel(categorical_cols[0])
-        plt.ylabel(numerical_cols[0])
-        plt.xticks(rotation=45, ha='right')
-        plt.tight_layout()
-        plt.show()
-    else:
-        print("Could not create a bar chart. Need at least one categorical and one numerical column.")
+widgets.interactive(plot_country_data, country=country_widget, date_range=date_range_widget)
+"""
 
-    # c) Histogram (of a numerical column to understand its distribution)
-    if len(numerical_cols) > 0:
-        plt.figure(figsize=(8, 6))
-        plt.hist(df[numerical_cols[0]], bins=10, edgecolor='black')
-        plt.title(f'Distribution of {numerical_cols[0]}')
-        plt.xlabel(numerical_cols[0])
-        plt.ylabel('Frequency')
-        plt.grid(axis='y', alpha=0.75)
-        plt.show()
-    else:
-        print("Could not create a histogram. No numerical columns available.")
+# ### 8.2 Build an Interactive Dashboard (Requires separate libraries and setup)
+# You would typically create a separate Python script for Streamlit or Dash apps.
 
-    # d) Scatter plot (to visualize the relationship between two numerical columns)
-    if len(numerical_cols) >= 2:
-        plt.figure(figsize=(8, 6))
-        plt.scatter(df[numerical_cols[0]], df[numerical_cols[1]])
-        plt.title(f'Relationship between {numerical_cols[0]} and {numerical_cols[1]}')
-        plt.xlabel(numerical_cols[0])
-        plt.ylabel(numerical_cols[1])
-        plt.grid(True)
-        plt.show()
-    else:
-        print("Could not create a scatter plot. Need at least two numerical columns.")
+# ### 8.3 Include Hospitalization or ICU Data (If Available in the Dataset)
+# Check the column names in the original dataframe for relevant data.
+# If found, clean and analyze those columns similarly.
 
-    # Additional visualization (example: box plot)
-    if categorical_cols and len(numerical_cols) > 0:
-        plt.figure(figsize=(10, 6))
-        sns.boxplot(x=categorical_cols[0], y=numerical_cols[0], data=df)
-        plt.title(f'Box Plot of {numerical_cols[0]} by {categorical_cols[0]}')
-        plt.xlabel(categorical_cols[0])
-        plt.ylabel(numerical_cols[0])
-        plt.xticks(rotation=45, ha='right')
-        plt.tight_layout()
-        plt.show()
-    else:
-        print("Could not create a box plot. Need at least one categorical and one numerical column.")
+# ## 9. Conclusion
 
-else:
-    print("Not enough numerical and categorical columns to create the required visualizations.")
-    
+"""
+[Summarize the main findings of your analysis and reiterate the key insights gained
+from the COVID-19 global data. You can also mention any limitations of the analysis
+or potential areas for future investigation.]
+"""
+
+# ## 10. Reproducibility
+
+"""
+This Jupyter Notebook provides a reproducible analysis of global COVID-19 data.
+The data is sourced directly from a public URL, and the code is well-commented
+to ensure clarity and understanding.
+"""
