@@ -1,222 +1,38 @@
-from flask import Flask, render_template_string, request
-import requests
-import random
-from datetime import datetime, timedelta
-
-app = Flask(__name__)
-
-# Replace with your OpenWeatherMap API key
-OPENWEATHERMAP_API_KEY = "YOUR_OPENWEATHERMAP_API_KEY"
-BASE_WEATHER_URL = "http://api.openweathermap.org/data/2.5/weather?"
-BASE_FORECAST_URL = "http://api.openweathermap.org/data/2.5/forecast?"
-
-# Default farm location (can be made user-configurable later)
-DEFAULT_LATITUDE = -1.2921  # Nairobi, Kenya
-DEFAULT_LONGITUDE = 36.8219
-
-# Basic CSS (can be moved to a separate static file for larger applications)
-STYLE = """
-body {
-    font-family: sans-serif;
-    margin: 20px;
-    background-color: #f4f4f4;
-}
-
-.container {
-    max-width: 960px;
-    margin: 0 auto;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-h1, h2 {
-    color: #333;
-}
-
-.weather, .forecast, .sensors, .health {
-    margin-bottom: 20px;
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-}
-
-.forecast-list {
-    display: flex;
-    overflow-x: auto;
-    gap: 10px;
-    padding-top: 10px;
-}
-
-.forecast-item {
-    background-color: #eee;
-    padding: 10px;
-    border-radius: 5px;
-    text-align: center;
-    flex: 0 0 auto; /* Don't grow, don't shrink, base width auto */
-    width: 120px; /* Adjust as needed */
-}
-
-.forecast-item img {
-    max-width: 60px;
-    height: auto;
-}
-
-.health.Needs\\ Attention {
-    background-color: #ffe0b2; /* Light orange */
-    border-color: #ffb300; /* Orange */
-}
-
-.health.Potentially\\ Stressed {
-    background-color: #ffcdd2; /* Light red */
-    border-color: #f44336; /* Red */
-}
-"""
-
-HTML_TEMPLATE = f"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crop Monitoring System</title>
-    <style>{STYLE}</style>
+    <title>My Simple Webpage</title>
 </head>
 <body>
-    <div class="container">
-        <h1>Crop Monitoring Dashboard</h1>
+    <header>
+        <h1>Welcome to My Website</h1>
+    </header>
 
-        <section class="weather">
-            <h2>Current Weather in Nairobi</h2>
-            {% if weather %}
-                <p>Temperature: {{ weather.main.temp }} °C</p>
-                <p>Description: {{ weather.weather[0].description|capitalize }}</p>
-                <p>Humidity: {{ weather.main.humidity }}%</p>
-                <p>Wind Speed: {{ weather.wind.speed }} m/s</p>
-            {% else %}
-                <p>Failed to fetch weather data.</p>
-            {% endif %}
-        </section>
+    <nav>
+        <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Services</a></li>
+            <li><a href="#">Contact</a></li>
+        </ul>
+    </nav>
 
-        <section class="forecast">
-            <h2>5-Day Weather Forecast</h2>
-            {% if forecast %}
-                <div class="forecast-list">
-                    {% for item in forecast %}
-                        <div class="forecast-item">
-                            <p><b>{{ item.dt_txt }}</b></p>
-                            <img src="http://openweathermap.org/img/wn/{{ item.weather[0].icon }}.png" alt="{{ item.weather[0].description }}">
-                            <p>Temp: {{ item.main.temp }} °C</p>
-                            <p>{{ item.weather[0].description|capitalize }}</p>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p>Failed to fetch weather forecast.</p>
-            {% endif %}
+    <main>
+        <p>This is the main content of my webpage. Here, you'll find interesting information and details about what I offer.</p>
+        <section>
+            <h2>First Section</h2>
+            <p>This is the first section within the main content. It contains more specific details.</p>
         </section>
+        <section>
+            <h2>Second Section</h2>
+            <p>And here's the second section with even more exciting content!</p>
+        </section>
+    </main>
 
-        <section class="sensors">
-            <h2>Real-Time Sensor Data (Simulated)</h2>
-            <p>Timestamp: {{ sensor_data.timestamp }}</p>
-            <p>Temperature: {{ sensor_data.temperature }} °C</p>
-            <p>Humidity: {{ sensor_data.humidity }}%</p>
-            <p>Soil Moisture: {{ sensor_data.soil_moisture }}%</p>
-            <p>Light Intensity: {{ sensor_data.light_intensity }} lux</p>
-        </section>
-
-        <section class="health">
-            <h2>Crop Health Analysis</h2>
-            <p><b>Status:</b> {{ crop_health.status }}</p>
-            {% if crop_health.issues %}
-                <ul>
-                    {% for issue in crop_health.issues %}
-                        <li>{{ issue }}</li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>No immediate issues detected.</p>
-            {% endif %}
-        </section>
-    </div>
+    <footer>
+        <p>&copy; 2025 My Simple Webpage | Contact us at: <a href="mailto:info@example.com">info@example.com</a></p>
+    </footer>
 </body>
 </html>
-"""
-
-def get_weather_data(latitude, longitude):
-    """Fetches current weather data from OpenWeatherMap API."""
-    params = {
-        'lat': latitude,
-        'lon': longitude,
-        'appid': OPENWEATHERMAP_API_KEY,
-        'units': 'metric'  # Use Celsius
-    }
-    try:
-        response = requests.get(BASE_WEATHER_URL, params=params)
-        response.raise_for_status()  # Raise an exception for bad status codes
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching weather data: {e}")
-        return None
-
-def get_weather_forecast(latitude, longitude):
-    """Fetches 5-day/3-hour weather forecast from OpenWeatherMap API."""
-    params = {
-        'lat': latitude,
-        'lon': longitude,
-        'appid': OPENWEATHERMAP_API_KEY,
-        'units': 'metric'
-    }
-    try:
-        response = requests.get(BASE_FORECAST_URL, params=params)
-        response.raise_for_status()
-        return response.json()['list']
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching weather forecast: {e}")
-        return None
-
-def simulate_sensor_data():
-    """Simulates real-time sensor data for demonstration."""
-    return {
-        'temperature': round(random.uniform(20, 35), 1),
-        'humidity': round(random.uniform(50, 85), 1),
-        'soil_moisture': round(random.uniform(30, 70), 1),
-        'light_intensity': round(random.uniform(500, 1500), 1),
-        'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    }
-
-def analyze_crop_health(sensor_data):
-    """Performs basic crop health analysis based on sensor data."""
-    health_status = "Good"
-    issues = []
-    if sensor_data['soil_moisture'] < 40:
-        issues.append("Low soil moisture detected.")
-        health_status = "Needs Attention"
-    elif sensor_data['soil_moisture'] > 65:
-        issues.append("High soil moisture detected.")
-        health_status = "Needs Attention"
-
-    if sensor_data['temperature'] > 32:
-        issues.append("High temperature detected.")
-        if health_status == "Good":
-            health_status = "Potentially Stressed"
-
-    return {"status": health_status, "issues": issues}
-
-@app.route('/')
-def index():
-    weather_data = get_weather_data(DEFAULT_LATITUDE, DEFAULT_LONGITUDE)
-    weather_forecast = get_weather_forecast(DEFAULT_LATITUDE, DEFAULT_LONGITUDE)
-    sensor_data = simulate_sensor_data()
-    crop_health = analyze_crop_health(sensor_data)
-
-    return render_template_string(HTML_TEMPLATE,
-                                   weather=weather_data,
-                                   forecast=weather_forecast,
-                                   sensor_data=sensor_data,
-                                   crop_health=crop_health)
-
-if __name__ == '__main__':
-    app.run(debug=True)
-python app.py
