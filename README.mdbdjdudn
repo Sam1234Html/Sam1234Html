@@ -3,36 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Simple Webpage</title>
+    <title>Advanced HTML5 Elements and Forms</title>
 </head>
 <body>
     <header>
-        <h1>Welcome to My Website</h1>
+        <h1>Exploring Advanced HTML5</h1>
     </header>
 
     <nav>
         <ul>
             <li><a href="#">Home</a></li>
             <li><a href="#">About</a></li>
-            <li><a href="#">Services</a></li>
-            <li><a href="#">Contact</a></li>
+            <li><a href="#">Forms</a></li>
+            <li><a href="#">Multimedia</a></li>
         </ul>
     </nav>
 
     <main>
-        <p>This is the main content of my webpage. Here, you'll find interesting information and details about what I offer.</p>
         <section>
-            <h2>First Section</h2>
-            <p>This is the first section within the main content. It contains more specific details.</p>
+            <h2>Ordered List (Roman Numerals)</h2>
+            <ol type="I">
+                <li>First item</li>
+                <li>Second item</li>
+                <li>Third item</li>
+                <li>Fourth item</li>
+                <li>Fifth item</li>
+            </ol>
         </section>
+
         <section>
-            <h2>Second Section</h2>
-            <p>And here's the second section with even more exciting content!</p>
+            <h2>External Image</h2>
+            <img src="https://images.pexels.com/photos/164634/pexels-photo-164634.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" alt="A scenic landscape">
+        </section>
+
+        <section>
+            <h2>Contact Table</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Address</th>
+                        <th>Mobile</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>John Doe</td>
+                        <td>123 Main St, Anytown</td>
+                        <td>+1 (555) 123-4567</td>
+                        <td>john.doe@example.com</td>
+                    </tr>
+                    <tr>
+                        <td>Jane Smith</td>
+                        <td>456 Oak Ave, Someville</td>
+                        <td>+1 (555) 987-6543</td>
+                        <td>jane.smith@example.com</td>
+                    </tr>
+                    <tr>
+                        <td>Peter Jones</td>
+                        <td>789 Pine Ln, Othercity</td>
+                        <td>+1 (555) 111-2233</td>
+                        <td>peter.jones@example.com</td>
+                    </tr>
+                    <tr>
+                        <td>Alice Brown</td>
+                        <td>101 Elm Rd, Nowhere</td>
+                        <td>+1 (555) 333-4455</td>
+                        <td>alice.brown@example.com</td>
+                    </tr>
+                    <tr>
+                        <td>Bob Green</td>
+                        <td>222 Willow Dr, Hereville</td>
+                        <td>+1 (555) 555-6677</td>
+                        <td>bob.green@example.com</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>Registration Form</h2>
+            <form action="#" method="POST">
+                <div>
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" placeholder="Your Full Name" required>
+                </div>
+
+                <div>
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" placeholder="Your Email Address" required>
+                </div>
+
+                <div>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" placeholder="Enter Password" required minlength="8">
+                </div>
+
+                <div>
+                    <label for="birthdate">Date of Birth:</label>
+                    <input type="date" id="birthdate" name="birthdate">
+                </div>
+
+                <div>
+                    <label for="occupation">Occupation:</label>
+                    <select id="occupation" name="occupation">
+                        <option value="" disabled selected>Select your occupation</option>
+                        <option value="student">Student</option>
+                        <option value="engineer">Engineer</option>
+                        <option value="doctor">Doctor</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div>
+                    <span>Gender:</span>
+                    <input type="radio" id="male" name="gender" value="male">
+                    <label for="male">Male</label>
+
+                    <input type="radio" id="female" name="gender" value="female">
+                    <label for="female">Female</label>
+
+                    <input type="radio" id="other_gender" name="gender" value="other">
+                    <label for="other_gender">Other</label>
+                </div>
+
+                <div>
+                    <span>Interests:</span>
+                    <input type="checkbox" id="coding" name="interests" value="coding">
+                    <label for="coding">Coding</label>
+
+                    <input type="checkbox" id="design" name="interests" value="design">
+                    <label for="design">Design</label>
+
+                    <input type="checkbox" id="reading" name="interests" value="reading">
+                    <label for="reading">Reading</label>
+                </div>
+
+                <button type="submit">Register</button>
+            </form>
+        </section>
+
+        <section>
+            <h2>Multimedia</h2>
+            <audio controls>
+                <source src="audio.mp3" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+
+            <video width="320" height="240" controls>
+                <source src="video.mp4" type="video/mp4">
+                Your browser does not support the video element.
+            </video>
         </section>
     </main>
 
     <footer>
-        <p>&copy; 2025 My Simple Webpage | Contact us at: <a href="mailto:info@example.com">info@example.com</a></p>
+        <p>&copy; 2025 Advanced HTML5 Elements and Forms</p>
     </footer>
 </body>
 </html>
