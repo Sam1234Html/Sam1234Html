@@ -1,237 +1,222 @@
-# -*- coding: utf-8 -*-
-"""
-COVID-19 Global Data Analysis Report
+from flask import Flask, render_template_string, request
+import requests
+import random
+from datetime import datetime, timedelta
 
-This notebook loads, cleans, analyzes, and visualizes global COVID-19 data
-obtained from Our World in Data. The report aims to provide insights into
-the trends of cases, deaths, and vaccinations across different countries.
-"""
+app = Flask(__name__)
 
-# ## 1. Import Libraries
+# Replace with your OpenWeatherMap API key
+OPENWEATHERMAP_API_KEY = "YOUR_OPENWEATHERMAP_API_KEY"
+BASE_WEATHER_URL = "http://api.openweathermap.org/data/2.5/weather?"
+BASE_FORECAST_URL = "http://api.openweathermap.org/data/2.5/forecast?"
 
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+# Default farm location (can be made user-configurable later)
+DEFAULT_LATITUDE = -1.2921  # Nairobi, Kenya
+DEFAULT_LONGITUDE = 36.8219
 
-# Set a visually appealing style for plots
-sns.set_style("whitegrid")
-plt.rcParams['figure.figsize'] = (12, 6)
-plt.rcParams['font.size'] = 10
+# Basic CSS (can be moved to a separate static file for larger applications)
+STYLE = """
+body {
+    font-family: sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+}
 
-# ## 2. Load the Dataset
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
 
-# Specify the URL for the Our World in Data COVID-19 dataset
-data_url = "https://covid.ourworldindata.org/data/owid-covid-data.csv"
+h1, h2 {
+    color: #333;
+}
 
-try:
-    df = pd.read_csv(data_url)
-    print("Data loaded successfully!")
-except Exception as e:
-    print(f"Error loading data: {e}")
-    # It's good practice to have an empty DataFrame in case of an error
-    df = pd.DataFrame()
+.weather, .forecast, .sensors, .health {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
 
-# ## 3. Initial Data Exploration
+.forecast-list {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding-top: 10px;
+}
 
-if not df.empty:
-    print("\nFirst few rows of the dataframe:")
-    print(df.head())
+.forecast-item {
+    background-color: #eee;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    flex: 0 0 auto; /* Don't grow, don't shrink, base width auto */
+    width: 120px; /* Adjust as needed */
+}
 
-    print("\nInformation about the dataframe:")
-    df.info()
+.forecast-item img {
+    max-width: 60px;
+    height: auto;
+}
 
-    print("\nSummary statistics of numerical columns:")
-    print(df.describe())
+.health.Needs\\ Attention {
+    background-color: #ffe0b2; /* Light orange */
+    border-color: #ffb300; /* Orange */
+}
 
-    print("\nNumber of unique locations:", df['location'].nunique())
-
-# ## 4. Data Cleaning and Preparation
-
-if not df.empty:
-    # Convert date column to datetime objects
-    df['date'] = pd.to_datetime(df['date'])
-
-    # Filter for relevant columns (you can add more as needed)
-    relevant_columns = ['date', 'location', 'total_cases', 'new_cases',
-                        'total_deaths', 'new_deaths', 'total_vaccinations',
-                        'new_vaccinations', 'population', 'continent']
-    df_cleaned = df[relevant_columns].copy()
-
-    # Handle missing values (imputation or removal)
-    # For simplicity, let's fill numerical NaNs with 0 and categorical with 'Unknown'
-    numerical_cols = df_cleaned.select_dtypes(include=np.number).columns
-    categorical_cols = df_cleaned.select_dtypes(include='object').columns
-
-    df_cleaned[numerical_cols] = df_cleaned[numerical_cols].fillna(0)
-    df_cleaned[categorical_cols] = df_cleaned[categorical_cols].fillna('Unknown')
-
-    print("\nCleaned dataframe information:")
-    df_cleaned.info()
-
-    # Optional: Filter for specific countries if needed for initial analysis
-    # selected_countries = ['Kenya', 'United States', 'India']
-    # df_selected = df_cleaned[df_cleaned['location'].isin(selected_countries)]
-
-# ## 5. Exploratory Data Analysis (EDA)
-
-if not df_cleaned.empty:
-    # --- Trends in Total Cases and Deaths Over Time ---
-    plt.figure(figsize=(15, 7))
-    sns.lineplot(data=df_cleaned[df_cleaned['location'] == 'World'], x='date', y='total_cases', label='Total Cases')
-    sns.lineplot(data=df_cleaned[df_cleaned['location'] == 'World'], x='date', y='total_deaths', label='Total Deaths')
-    plt.title('Global Total COVID-19 Cases and Deaths Over Time')
-    plt.xlabel('Date')
-    plt.ylabel('Number of Cases/Deaths')
-    plt.legend()
-    plt.show()
-
-    # --- New Cases and Deaths by Continent (Latest Date) ---
-    latest_data = df_cleaned.loc[df_cleaned.groupby('location')['date'].idxmax()]
-    continent_summary = latest_data.groupby('continent')[['new_cases', 'new_deaths']].sum().reset_index()
-
-    fig, axes = plt.subplots(1, 2, figsize=(18, 6))
-    sns.barplot(data=continent_summary, x='continent', y='new_cases', ax=axes[0])
-    axes[0].set_title('Total New Cases by Continent (Latest Data)')
-    axes[0].set_xlabel('Continent')
-    axes[0].set_ylabel('Total New Cases')
-
-    sns.barplot(data=continent_summary, x='continent', y='new_deaths', ax=axes[1])
-    axes[1].set_title('Total New Deaths by Continent (Latest Data)')
-    axes[1].set_xlabel('Continent')
-    axes[1].set_ylabel('Total New Deaths')
-    plt.tight_layout()
-    plt.show()
-
-    # --- Vaccination Progress (Latest Data) ---
-    vaccination_data = latest_data[latest_data['total_vaccinations'] > 0].sort_values(by='total_vaccinations', ascending=False).head(10)
-    plt.figure(figsize=(14, 7))
-    sns.barplot(data=vaccination_data, y='location', x='total_vaccinations')
-    plt.title('Top 10 Countries by Total Vaccinations (Latest Data)')
-    plt.xlabel('Total Vaccinations')
-    plt.ylabel('Country')
-    plt.tight_layout()
-    plt.show()
-
-    # --- Optional: Correlation Heatmap (if you have relevant numerical features) ---
-    numerical_eda_cols = ['total_cases', 'new_cases', 'total_deaths', 'new_deaths', 'total_vaccinations', 'new_vaccinations', 'population']
-    correlation_matrix = df_cleaned[numerical_eda_cols].corr()
-    plt.figure(figsize=(10, 8))
-    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f")
-    plt.title('Correlation Matrix of COVID-19 Related Features')
-    plt.show()
-
-# ## 6. Calculating Critical Indicators
-
-if not df_cleaned.empty:
-    # Calculate death rate (total deaths / total cases)
-    global_latest = df_cleaned[df_cleaned['location'] == 'World'].iloc[-1]
-    if global_latest['total_cases'] > 0:
-        global_death_rate = (global_latest['total_deaths'] / global_latest['total_cases']) * 100
-        print(f"\nGlobal Death Rate (as of {global_latest['date'].strftime('%Y-%m-%d')}): {global_death_rate:.2f}%")
-    else:
-        print("\nGlobal Total Cases are zero, cannot calculate death rate.")
-
-    # You can calculate other indicators like vaccination coverage as well
-    # Example: Percentage of population vaccinated (using the latest data)
-    latest_pop_vaccination = latest_data[latest_data['total_vaccinations'] > 0][['location', 'total_vaccinations', 'population']].copy()
-    latest_pop_vaccination['vaccination_coverage'] = (latest_pop_vaccination['total_vaccinations'] / latest_pop_vaccination['population']) * 100
-    latest_pop_vaccination_sorted = latest_pop_vaccination.sort_values(by='vaccination_coverage', ascending=False).head(10)
-
-    plt.figure(figsize=(14, 7))
-    sns.barplot(data=latest_pop_vaccination_sorted, y='location', x='vaccination_coverage')
-    plt.title('Top 10 Countries by Vaccination Coverage (Latest Data)')
-    plt.xlabel('Percentage of Population Vaccinated')
-    plt.ylabel('Country')
-    plt.tight_layout()
-    plt.show()
-
-# ## 7. Presenting Insights and Narrative
-
-"""
-### Key Insights:
-
-- **Global Trends:** [Summarize the trends observed in total cases and deaths over time.
-  Mention any significant waves or changes in the trend.]
-
-- **Continental Comparison:** [Discuss the differences in new cases and deaths across continents
-  based on the latest available data.]
-
-- **Vaccination Progress:** [Highlight the countries with the highest total vaccinations and
-  discuss the vaccination coverage.]
-
-- **Critical Indicators:** [Present the calculated global death rate and any other relevant
-  indicators. Interpret what these numbers mean.]
-
-- **Optional Further Analysis:** [Mention any potential next steps for analysis, such as
-  exploring specific country trends, the impact of interventions, or the relationship
-  between different variables.]
-
-### Narrative:
-
-[Provide a clear and concise narrative that connects the code, visualizations, and
-insights. Explain the rationale behind the analysis steps and the key takeaways
-from the findings. Use clear and accessible language.]
+.health.Potentially\\ Stressed {
+    background-color: #ffcdd2; /* Light red */
+    border-color: #f44336; /* Red */
+}
 """
 
-# ## 8. Optional Stretch Goals (Adapt as needed)
+HTML_TEMPLATE = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Monitoring System</title>
+    <style>{STYLE}</style>
+</head>
+<body>
+    <div class="container">
+        <h1>Crop Monitoring Dashboard</h1>
 
-# ### 8.1 Allow User Input
+        <section class="weather">
+            <h2>Current Weather in Nairobi</h2>
+            {% if weather %}
+                <p>Temperature: {{ weather.main.temp }} °C</p>
+                <p>Description: {{ weather.weather[0].description|capitalize }}</p>
+                <p>Humidity: {{ weather.main.humidity }}%</p>
+                <p>Wind Speed: {{ weather.wind.speed }} m/s</p>
+            {% else %}
+                <p>Failed to fetch weather data.</p>
+            {% endif %}
+        </section>
 
+        <section class="forecast">
+            <h2>5-Day Weather Forecast</h2>
+            {% if forecast %}
+                <div class="forecast-list">
+                    {% for item in forecast %}
+                        <div class="forecast-item">
+                            <p><b>{{ item.dt_txt }}</b></p>
+                            <img src="http://openweathermap.org/img/wn/{{ item.weather[0].icon }}.png" alt="{{ item.weather[0].description }}">
+                            <p>Temp: {{ item.main.temp }} °C</p>
+                            <p>{{ item.weather[0].description|capitalize }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>Failed to fetch weather forecast.</p>
+            {% endif %}
+        </section>
+
+        <section class="sensors">
+            <h2>Real-Time Sensor Data (Simulated)</h2>
+            <p>Timestamp: {{ sensor_data.timestamp }}</p>
+            <p>Temperature: {{ sensor_data.temperature }} °C</p>
+            <p>Humidity: {{ sensor_data.humidity }}%</p>
+            <p>Soil Moisture: {{ sensor_data.soil_moisture }}%</p>
+            <p>Light Intensity: {{ sensor_data.light_intensity }} lux</p>
+        </section>
+
+        <section class="health">
+            <h2>Crop Health Analysis</h2>
+            <p><b>Status:</b> {{ crop_health.status }}</p>
+            {% if crop_health.issues %}
+                <ul>
+                    {% for issue in crop_health.issues %}
+                        <li>{{ issue }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No immediate issues detected.</p>
+            {% endif %}
+        </section>
+    </div>
+</body>
+</html>
 """
-import ipywidgets as widgets
-from IPython.display import display
 
-country_widget = widgets.Dropdown(
-    options=df_cleaned['location'].unique(),
-    description='Select Country:',
-    disabled=False,
-)
-display(country_widget)
+def get_weather_data(latitude, longitude):
+    """Fetches current weather data from OpenWeatherMap API."""
+    params = {
+        'lat': latitude,
+        'lon': longitude,
+        'appid': OPENWEATHERMAP_API_KEY,
+        'units': 'metric'  # Use Celsius
+    }
+    try:
+        response = requests.get(BASE_WEATHER_URL, params=params)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching weather data: {e}")
+        return None
 
-date_range_widget = widgets.DatePickerRange(
-    description='Select Date Range:',
-    disabled=False
-)
-display(date_range_widget)
+def get_weather_forecast(latitude, longitude):
+    """Fetches 5-day/3-hour weather forecast from OpenWeatherMap API."""
+    params = {
+        'lat': latitude,
+        'lon': longitude,
+        'appid': OPENWEATHERMAP_API_KEY,
+        'units': 'metric'
+    }
+    try:
+        response = requests.get(BASE_FORECAST_URL, params=params)
+        response.raise_for_status()
+        return response.json()['list']
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching weather forecast: {e}")
+        return None
 
-def plot_country_data(country, date_range):
-    start_date, end_date = date_range
-    country_df = df_cleaned[(df_cleaned['location'] == country) & (df_cleaned['date'] >= pd.to_datetime(start_date)) & (df_cleaned['date'] <= pd.to_datetime(end_date))]
-    if not country_df.empty:
-        plt.figure(figsize=(12, 6))
-        plt.plot(country_df['date'], country_df['total_cases'], label='Total Cases')
-        plt.plot(country_df['date'], country_df['total_deaths'], label='Total Deaths')
-        plt.xlabel('Date')
-        plt.ylabel('Number')
-        plt.title(f'COVID-19 Trends in {country} ({start_date} to {end_date})')
-        plt.legend()
-        plt.show()
-    else:
-        print(f"No data available for {country} within the selected date range.")
+def simulate_sensor_data():
+    """Simulates real-time sensor data for demonstration."""
+    return {
+        'temperature': round(random.uniform(20, 35), 1),
+        'humidity': round(random.uniform(50, 85), 1),
+        'soil_moisture': round(random.uniform(30, 70), 1),
+        'light_intensity': round(random.uniform(500, 1500), 1),
+        'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
 
-widgets.interactive(plot_country_data, country=country_widget, date_range=date_range_widget)
-"""
+def analyze_crop_health(sensor_data):
+    """Performs basic crop health analysis based on sensor data."""
+    health_status = "Good"
+    issues = []
+    if sensor_data['soil_moisture'] < 40:
+        issues.append("Low soil moisture detected.")
+        health_status = "Needs Attention"
+    elif sensor_data['soil_moisture'] > 65:
+        issues.append("High soil moisture detected.")
+        health_status = "Needs Attention"
 
-# ### 8.2 Build an Interactive Dashboard (Requires separate libraries and setup)
-# You would typically create a separate Python script for Streamlit or Dash apps.
+    if sensor_data['temperature'] > 32:
+        issues.append("High temperature detected.")
+        if health_status == "Good":
+            health_status = "Potentially Stressed"
 
-# ### 8.3 Include Hospitalization or ICU Data (If Available in the Dataset)
-# Check the column names in the original dataframe for relevant data.
-# If found, clean and analyze those columns similarly.
+    return {"status": health_status, "issues": issues}
 
-# ## 9. Conclusion
+@app.route('/')
+def index():
+    weather_data = get_weather_data(DEFAULT_LATITUDE, DEFAULT_LONGITUDE)
+    weather_forecast = get_weather_forecast(DEFAULT_LATITUDE, DEFAULT_LONGITUDE)
+    sensor_data = simulate_sensor_data()
+    crop_health = analyze_crop_health(sensor_data)
 
-"""
-[Summarize the main findings of your analysis and reiterate the key insights gained
-from the COVID-19 global data. You can also mention any limitations of the analysis
-or potential areas for future investigation.]
-"""
+    return render_template_string(HTML_TEMPLATE,
+                                   weather=weather_data,
+                                   forecast=weather_forecast,
+                                   sensor_data=sensor_data,
+                                   crop_health=crop_health)
 
-# ## 10. Reproducibility
-
-"""
-This Jupyter Notebook provides a reproducible analysis of global COVID-19 data.
-The data is sourced directly from a public URL, and the code is well-commented
-to ensure clarity and understanding.
-"""
+if __name__ == '__main__':
+    app.run(debug=True)
+python app.py
