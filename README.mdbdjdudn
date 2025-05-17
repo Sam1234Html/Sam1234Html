@@ -1,0 +1,158 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Task 1: Load and Explore the Dataset
+# Assuming the dataset is named 'your_dataset.csv' and is in the same directory
+try:
+    df = pd.read_csv('your_dataset.csv')
+    print("Dataset loaded successfully!")
+except FileNotFoundError:
+    print("Error: 'your_dataset.csv' not found. Please make sure the file is in the correct directory or provide the correct path.")
+    exit()
+
+print("\nFirst few rows of the dataset:")
+print(df.head())
+
+print("\nDataset information:")
+df.info()
+
+print("\nMissing values:")
+print(df.isnull().sum())
+
+# Handle missing values (example: fill with mean for numerical columns, mode for categorical)
+for column in df.columns:
+    if df[column].isnull().any():
+        if pd.api.types.is_numeric_dtype(df[column]):
+            df[column].fillna(df[column].mean(), inplace=True)
+            print(f"Missing values in '{column}' filled with the mean.")
+        else:
+            df[column].fillna(df[column].mode()[0], inplace=True)
+            print(f"Missing values in '{column}' filled with the mode.")
+
+print("\nMissing values after handling:")
+print(df.isnull().sum())
+
+# Task 2: Basic Data Analysis
+print("\nTask 2: Basic Data Analysis")
+
+# 1. Compute basic statistics of numerical columns
+print("\nBasic statistics of numerical columns:")
+print(df.describe())
+
+# Identify a categorical column for grouping (replace 'categorical_column' with an actual column name)
+categorical_column = None
+for col in df.columns:
+    if pd.api.types.is_object_dtype(df[col]) or pd.api.types.is_categorical_dtype(df[col]):
+        categorical_column = col
+        break
+
+if categorical_column:
+    print(f"\nPerforming groupings on the categorical column: '{categorical_column}'")
+    # Identify a numerical column to compute the mean for each group (replace 'numerical_column' with an actual column name)
+    numerical_column_for_grouping = None
+    for col in df.columns:
+        if pd.api.types.is_numeric_dtype(df[col]) and col != 'count': # Avoid count from describe()
+            numerical_column_for_grouping = col
+            break
+
+    if numerical_column_for_grouping:
+        # 2. Perform groupings and compute the mean
+        grouped_mean = df.groupby(categorical_column)[numerical_column_for_grouping].mean()
+        print(f"\nMean of '{numerical_column_for_grouping}' for each '{categorical_column}':")
+        print(grouped_mean)
+
+        # 3. Identify any patterns or interesting findings (example)
+        print("\nInteresting Findings (Example):")
+        print(f"The average '{numerical_column_for_grouping}' varies across different '{categorical_column}'.")
+        if grouped_mean.max() > grouped_mean.min():
+            category_max_mean = grouped_mean.idxmax()
+            category_min_mean = grouped_mean.idxmin()
+            print(f"The category '{category_max_mean}' has the highest average '{numerical_column_for_grouping}'.")
+            print(f"The category '{category_min_mean}' has the lowest average '{numerical_column_for_grouping}'.")
+    else:
+        print("No suitable numerical column found for grouping analysis.")
+else:
+    print("No categorical column found for grouping analysis.")
+
+# Task 3: Data Visualization
+print("\nTask 3: Data Visualization")
+
+# Ensure there are numerical and categorical columns for visualization
+numerical_cols = df.select_dtypes(include=['number']).columns.tolist()
+categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+
+if len(numerical_cols) >= 2 and categorical_cols:
+    # 1. Create at least four different types of visualizations
+
+    # a) Line chart (showing trends over time - assuming a time-related column exists)
+    time_column = None
+    for col in df.columns:
+        if 'date' in col.lower() or 'year' in col.lower():
+            time_column = col
+            break
+
+    if time_column and len(numerical_cols) > 0:
+        plt.figure(figsize=(10, 6))
+        plt.plot(df[time_column], df[numerical_cols[0]])
+        plt.title(f'Trend of {numerical_cols[0]} over Time')
+        plt.xlabel(time_column)
+        plt.ylabel(numerical_cols[0])
+        plt.grid(True)
+        plt.show()
+    else:
+        print("Could not create a line chart. No suitable time-related column found.")
+
+    # b) Bar chart (showing the comparison of a numerical value across categories)
+    if categorical_cols and len(numerical_cols) > 0:
+        plt.figure(figsize=(10, 6))
+        sns.barplot(x=categorical_cols[0], y=numerical_cols[0], data=df)
+        plt.title(f'Comparison of {numerical_cols[0]} across {categorical_cols[0]}')
+        plt.xlabel(categorical_cols[0])
+        plt.ylabel(numerical_cols[0])
+        plt.xticks(rotation=45, ha='right')
+        plt.tight_layout()
+        plt.show()
+    else:
+        print("Could not create a bar chart. Need at least one categorical and one numerical column.")
+
+    # c) Histogram (of a numerical column to understand its distribution)
+    if len(numerical_cols) > 0:
+        plt.figure(figsize=(8, 6))
+        plt.hist(df[numerical_cols[0]], bins=10, edgecolor='black')
+        plt.title(f'Distribution of {numerical_cols[0]}')
+        plt.xlabel(numerical_cols[0])
+        plt.ylabel('Frequency')
+        plt.grid(axis='y', alpha=0.75)
+        plt.show()
+    else:
+        print("Could not create a histogram. No numerical columns available.")
+
+    # d) Scatter plot (to visualize the relationship between two numerical columns)
+    if len(numerical_cols) >= 2:
+        plt.figure(figsize=(8, 6))
+        plt.scatter(df[numerical_cols[0]], df[numerical_cols[1]])
+        plt.title(f'Relationship between {numerical_cols[0]} and {numerical_cols[1]}')
+        plt.xlabel(numerical_cols[0])
+        plt.ylabel(numerical_cols[1])
+        plt.grid(True)
+        plt.show()
+    else:
+        print("Could not create a scatter plot. Need at least two numerical columns.")
+
+    # Additional visualization (example: box plot)
+    if categorical_cols and len(numerical_cols) > 0:
+        plt.figure(figsize=(10, 6))
+        sns.boxplot(x=categorical_cols[0], y=numerical_cols[0], data=df)
+        plt.title(f'Box Plot of {numerical_cols[0]} by {categorical_cols[0]}')
+        plt.xlabel(categorical_cols[0])
+        plt.ylabel(numerical_cols[0])
+        plt.xticks(rotation=45, ha='right')
+        plt.tight_layout()
+        plt.show()
+    else:
+        print("Could not create a box plot. Need at least one categorical and one numerical column.")
+
+else:
+    print("Not enough numerical and categorical columns to create the required visualizations.")
+    
