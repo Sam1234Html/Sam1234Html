@@ -3,190 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Responsive Layout</title>
+    <title>DOM Manipulation</title>
     <style>
-        /* Basic Reset */
-        body, nav ul, nav li, .content-section {
-            margin: 0;
-            padding: 0;
-            border: 0;
-            box-sizing: border-box;
-        }
-
+        /* Optional CSS for basic styling */
         body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-            background-color: #f4f4f4;
-            color: #333;
+            font-family: sans-serif;
+            margin: 20px;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Navigation Bar */
-        nav {
-            background-color: #333;
-            color: #fff;
-            padding: 15px 0;
-        }
-
-        nav .container {
-            display: flex;
-            justify-content: space-between; /* Space out logo and links */
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.5em;
-            font-weight: bold;
-        }
-
-        nav ul {
-            list-style: none;
-            display: flex;
-        }
-
-        nav ul li {
-            margin-left: 20px;
-        }
-
-        nav ul li a {
-            color: #fff;
-            text-decoration: none;
-        }
-
-        nav ul li a:hover {
-            color: #ddd;
-        }
-
-        /* Main Content */
-        .main-content {
-            display: flex;
-            gap: 30px; /* Space between main and sidebar */
-            margin-top: 30px;
-        }
-
-        .main-area {
-            flex: 3; /* Takes up 3/4 of the available space */
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-        }
-
-        .sidebar {
-            flex: 1; /* Takes up 1/4 of the available space */
-            padding: 20px;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-        }
-
-        .content-section {
+        header {
             margin-bottom: 20px;
-            padding: 15px;
-            background-color: #fff;
-            border: 1px solid #eee;
-            border-radius: 4px;
-        }
-
-        h2 {
-            color: #007bff;
-            margin-bottom: 10px;
-        }
-
-        /* Footer */
-        footer {
             text-align: center;
-            padding: 20px 0;
+        }
+
+        #content-area {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .dynamic-paragraph {
+            margin-top: 10px;
+            padding: 8px;
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 3px;
+        }
+
+        footer {
             margin-top: 30px;
-            background-color: #333;
-            color: #fff;
-        }
-
-        /* Media Queries for Responsiveness */
-
-        /* Mobile View (up to 600px) */
-        @media (max-width: 600px) {
-            nav .container {
-                flex-direction: column; /* Stack logo and links */
-                align-items: flex-start;
-            }
-
-            nav ul {
-                flex-direction: column; /* Stack links vertically */
-                margin-top: 10px;
-            }
-
-            nav ul li {
-                margin-left: 0;
-                margin-bottom: 10px;
-            }
-
-            .main-content {
-                flex-direction: column; /* Stack main and sidebar */
-            }
-
-            .main-area, .sidebar {
-                flex: 1; /* Both take full width */
-                margin-bottom: 20px;
-            }
-        }
-
-        /* Tablet View (601px to 900px) */
-        @media (min-width: 601px) and (max-width: 900px) {
-            .main-content {
-                flex-direction: column; /* Stack main and sidebar */
-            }
-
-            .main-area, .sidebar {
-                flex: 1; /* Both take full width */
-                margin-bottom: 20px;
-            }
+            text-align: center;
+            color: #777;
         }
     </style>
 </head>
 <body>
-    <nav>
-        <div class="container">
-            <div class="logo">My Website</div>
-            <ul>
-                <li><a href="#">Home</a></li>
-                <li><a href="#">About</a></li>
-                <li><a href="#">Services</a></li>
-                <li><a href="#">Contact</a></li>
-            </ul>
-        </div>
-    </nav>
+    <header>
+        <h1>Welcome to the Dynamic Page</h1>
+        <p class="description">This page demonstrates DOM manipulation with JavaScript.</p>
+    </header>
 
-    <div class="container main-content">
-        <main class="main-area">
-            <h2>Main Content Area</h2>
-            <div class="content-section">
-                <h3>Section 1</h3>
-                <p>This is the content for section 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-            </div>
-            <div class="content-section">
-                <h3>Section 2</h3>
-                <p>Content for section 2 goes here. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-            </div>
-        </main>
-        <aside class="sidebar">
-            <h2>Sidebar</h2>
-            <div class="content-section">
-                <h3>Widget 1</h3>
-                <p>Some information in the sidebar.</p>
-            </div>
-            <div class="content-section">
-                <h3>Widget 2</h3>
-                <p>Another widget here.</p>
-            </div>
-        </aside>
-    </div>
+    <main>
+        <div id="content-area">
+            <p id="dynamic-text">Initial text content.</p>
+            <button id="change-text-button">Change Text</button>
+            <button id="change-style-button">Change Style</button>
+        </div>
+
+        <div id="element-manipulation">
+            <button id="add-element-button">Add Paragraph</button>
+            <button id="remove-element-button">Remove Last Paragraph</button>
+        </div>
+    </main>
 
     <footer>
-        <div class="container">&copy; 2025 My Website</div>
+        <p>&copy; 2025 My Dynamic Page</p>
     </footer>
+
+    <script>
+        // Function to change the text content of the dynamic-text paragraph
+        function changeText() {
+            const dynamicTextElement = document.getElementById('dynamic-text');
+            if (dynamicTextElement) {
+                dynamicTextElement.textContent = 'The text has been changed dynamically!';
+            }
+        }
+
+        // Function to change the CSS style of the content-area
+        function changeStyle() {
+            const contentAreaElement = document.getElementById('content-area');
+            if (contentAreaElement) {
+                contentAreaElement.style.backgroundColor = '#e0f7fa'; // Light blue background
+                contentAreaElement.style.padding = '20px';
+                contentAreaElement.style.borderRadius = '5px';
+                contentAreaElement.style.border = '1px solid #b2ebf2';
+            }
+        }
+
+        // Function to add a new paragraph element
+        function addParagraph() {
+            const elementManipulationArea = document.getElementById('element-manipulation');
+            if (elementManipulationArea) {
+                const newParagraph = document.createElement('p');
+                newParagraph.textContent = 'A new paragraph added dynamically.';
+                newParagraph.classList.add('dynamic-paragraph'); // Optional: Add a class for potential styling
+                elementManipulationArea.appendChild(newParagraph);
+            }
+        }
+
+        // Function to remove the last added paragraph element
+        function removeLastParagraph() {
+            const elementManipulationArea = document.getElementById('element-manipulation');
+            if (elementManipulationArea) {
+                const dynamicParagraphs = elementManipulationArea.querySelectorAll('.dynamic-paragraph');
+                if (dynamicParagraphs.length > 0) {
+                    const lastParagraph = dynamicParagraphs[dynamicParagraphs.length - 1];
+                    elementManipulationArea.removeChild(lastParagraph);
+                } else {
+                    alert('No more paragraphs to remove!');
+                }
+            }
+        }
+
+        // Event listeners to trigger the functions when buttons are clicked
+        document.addEventListener('DOMContentLoaded', () => {
+            const changeTextButton = document.getElementById('change-text-button');
+            const changeStyleButton = document.getElementById('change-style-button');
+            const addElementButton = document.getElementById('add-element-button');
+            const removeElementButton = document.getElementById('remove-element-button');
+
+            if (changeTextButton) {
+                changeTextButton.addEventListener('click', changeText);
+            }
+
+            if (changeStyleButton) {
+                changeStyleButton.addEventListener('click', changeStyle);
+            }
+
+            if (addElementButton) {
+                addElementButton.addEventListener('click', addParagraph);
+            }
+
+            if (removeElementButton) {
+                removeElementButton.addEventListener('click', removeLastParagraph);
+            }
+        });
+    </script>
 </body>
 </html>
