@@ -3,163 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced HTML5 Elements and Forms</title>
+    <title>My Styled Page</title>
+    <style>
+        /* Basic reset to ensure consistent spacing */
+        body, h1, h2, p, ul, li, img {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            box-sizing: border-box; /* More intuitive box model */
+        }
+
+        body {
+            font-family: 'Arial', sans-serif; /* A common and readable sans-serif font */
+            line-height: 1.6; /* Improves readability of text */
+            background-color: #f4f4f4; /* Light gray background */
+            color: #333; /* Dark gray text */
+        }
+
+        .container {
+            max-width: 960px; /* Limits the width of the content for better readability on larger screens */
+            margin: 20px auto; /* Centers the container horizontally with top and bottom margin */
+            padding: 20px;
+            background-color: #fff; /* White background for the content area */
+            border-radius: 8px; /* Slightly rounded corners */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+        }
+
+        h1 {
+            font-family: 'Georgia', serif; /* A classic serif font for headings */
+            font-size: 2.5em;
+            color: #007bff; /* A nice blue color */
+            margin-bottom: 15px;
+            text-align: center; /* Centers the main heading */
+        }
+
+        #main-image {
+            display: block; /* Removes default inline spacing */
+            max-width: 100%; /* Ensures the image doesn't exceed its container */
+            height: auto; /* Maintains aspect ratio */
+            margin-bottom: 20px;
+            border: 5px solid #ddd; /* Light gray border around the image */
+            border-radius: 4px; /* Slightly rounded corners for the image */
+        }
+
+        .important-text {
+            font-weight: bold; /* Makes the text bold */
+            color: #28a745; /* A green color for emphasis */
+        }
+
+        .list-item {
+            margin-bottom: 10px; /* Spacing between list items */
+            padding-left: 20px; /* Indentation for list items */
+            list-style-type: square; /* Uses square bullets */
+        }
+
+        .highlighted {
+            background-color: #ffeeba; /* Light yellow background for highlighting */
+            padding: 5px;
+            border-radius: 3px;
+        }
+
+        p {
+            margin-bottom: 15px; /* Spacing between paragraphs */
+        }
+
+        /* Example of a pseudo-class selector */
+        a:hover {
+            color: #dc3545; /* Changes link color on hover to red */
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>Exploring Advanced HTML5</h1>
-    </header>
-
-    <nav>
+    <div class="container">
+        <h1>Welcome to My Styled Page</h1>
+        <img id="main-image" src="placeholder-image.jpg" alt="A placeholder image">
+        <p>This is some <span class="important-text">important</span> text to demonstrate the use of a class selector.</p>
+        <p>Here's a list with some <span class="highlighted">highlighted</span> items:</p>
         <ul>
-            <li><a href="#">Home</a></li>
-            <li><a href="#">About</a></li>
-            <li><a href="#">Forms</a></li>
-            <li><a href="#">Multimedia</a></li>
+            <li class="list-item">Item number one</li>
+            <li class="list-item">Another item in the list</li>
+            <li class="list-item">A <a href="#">link</a> for demonstration</li>
         </ul>
-    </nav>
-
-    <main>
-        <section>
-            <h2>Ordered List (Roman Numerals)</h2>
-            <ol type="I">
-                <li>First item</li>
-                <li>Second item</li>
-                <li>Third item</li>
-                <li>Fourth item</li>
-                <li>Fifth item</li>
-            </ol>
-        </section>
-
-        <section>
-            <h2>External Image</h2>
-            <img src="https://images.pexels.com/photos/164634/pexels-photo-164634.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" alt="A scenic landscape">
-        </section>
-
-        <section>
-            <h2>Contact Table</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Address</th>
-                        <th>Mobile</th>
-                        <th>Email</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>John Doe</td>
-                        <td>123 Main St, Anytown</td>
-                        <td>+1 (555) 123-4567</td>
-                        <td>john.doe@example.com</td>
-                    </tr>
-                    <tr>
-                        <td>Jane Smith</td>
-                        <td>456 Oak Ave, Someville</td>
-                        <td>+1 (555) 987-6543</td>
-                        <td>jane.smith@example.com</td>
-                    </tr>
-                    <tr>
-                        <td>Peter Jones</td>
-                        <td>789 Pine Ln, Othercity</td>
-                        <td>+1 (555) 111-2233</td>
-                        <td>peter.jones@example.com</td>
-                    </tr>
-                    <tr>
-                        <td>Alice Brown</td>
-                        <td>101 Elm Rd, Nowhere</td>
-                        <td>+1 (555) 333-4455</td>
-                        <td>alice.brown@example.com</td>
-                    </tr>
-                    <tr>
-                        <td>Bob Green</td>
-                        <td>222 Willow Dr, Hereville</td>
-                        <td>+1 (555) 555-6677</td>
-                        <td>bob.green@example.com</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-
-        <section>
-            <h2>Registration Form</h2>
-            <form action="#" method="POST">
-                <div>
-                    <label for="name">Name:</label>
-                    <input type="text" id="name" name="name" placeholder="Your Full Name" required>
-                </div>
-
-                <div>
-                    <label for="email">Email:</label>
-                    <input type="email" id="email" name="email" placeholder="Your Email Address" required>
-                </div>
-
-                <div>
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" name="password" placeholder="Enter Password" required minlength="8">
-                </div>
-
-                <div>
-                    <label for="birthdate">Date of Birth:</label>
-                    <input type="date" id="birthdate" name="birthdate">
-                </div>
-
-                <div>
-                    <label for="occupation">Occupation:</label>
-                    <select id="occupation" name="occupation">
-                        <option value="" disabled selected>Select your occupation</option>
-                        <option value="student">Student</option>
-                        <option value="engineer">Engineer</option>
-                        <option value="doctor">Doctor</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-
-                <div>
-                    <span>Gender:</span>
-                    <input type="radio" id="male" name="gender" value="male">
-                    <label for="male">Male</label>
-
-                    <input type="radio" id="female" name="gender" value="female">
-                    <label for="female">Female</label>
-
-                    <input type="radio" id="other_gender" name="gender" value="other">
-                    <label for="other_gender">Other</label>
-                </div>
-
-                <div>
-                    <span>Interests:</span>
-                    <input type="checkbox" id="coding" name="interests" value="coding">
-                    <label for="coding">Coding</label>
-
-                    <input type="checkbox" id="design" name="interests" value="design">
-                    <label for="design">Design</label>
-
-                    <input type="checkbox" id="reading" name="interests" value="reading">
-                    <label for="reading">Reading</label>
-                </div>
-
-                <button type="submit">Register</button>
-            </form>
-        </section>
-
-        <section>
-            <h2>Multimedia</h2>
-            <audio controls>
-                <source src="audio.mp3" type="audio/mpeg">
-                Your browser does not support the audio element.
-            </audio>
-
-            <video width="320" height="240" controls>
-                <source src="video.mp4" type="video/mp4">
-                Your browser does not support the video element.
-            </video>
-        </section>
-    </main>
-
-    <footer>
-        <p>&copy; 2025 Advanced HTML5 Elements and Forms</p>
-    </footer>
+        <p id="last-paragraph">This is the last paragraph, styled implicitly by the element selector.</p>
+    </div>
 </body>
 </html>
