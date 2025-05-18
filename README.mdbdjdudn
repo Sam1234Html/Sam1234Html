@@ -3,88 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Styled Page</title>
+    <title>Responsive Layout</title>
     <style>
-        /* Basic reset to ensure consistent spacing */
-        body, h1, h2, p, ul, li, img {
+        /* Basic Reset */
+        body, nav ul, nav li, .content-section {
             margin: 0;
             padding: 0;
             border: 0;
-            box-sizing: border-box; /* More intuitive box model */
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Arial', sans-serif; /* A common and readable sans-serif font */
-            line-height: 1.6; /* Improves readability of text */
-            background-color: #f4f4f4; /* Light gray background */
-            color: #333; /* Dark gray text */
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            background-color: #f4f4f4;
+            color: #333;
         }
 
         .container {
-            max-width: 960px; /* Limits the width of the content for better readability on larger screens */
-            margin: 20px auto; /* Centers the container horizontally with top and bottom margin */
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 20px;
-            background-color: #fff; /* White background for the content area */
-            border-radius: 8px; /* Slightly rounded corners */
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
         }
 
-        h1 {
-            font-family: 'Georgia', serif; /* A classic serif font for headings */
-            font-size: 2.5em;
-            color: #007bff; /* A nice blue color */
-            margin-bottom: 15px;
-            text-align: center; /* Centers the main heading */
+        /* Navigation Bar */
+        nav {
+            background-color: #333;
+            color: #fff;
+            padding: 15px 0;
         }
 
-        #main-image {
-            display: block; /* Removes default inline spacing */
-            max-width: 100%; /* Ensures the image doesn't exceed its container */
-            height: auto; /* Maintains aspect ratio */
+        nav .container {
+            display: flex;
+            justify-content: space-between; /* Space out logo and links */
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+        }
+
+        nav ul li {
+            margin-left: 20px;
+        }
+
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        nav ul li a:hover {
+            color: #ddd;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            gap: 30px; /* Space between main and sidebar */
+            margin-top: 30px;
+        }
+
+        .main-area {
+            flex: 3; /* Takes up 3/4 of the available space */
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+        }
+
+        .sidebar {
+            flex: 1; /* Takes up 1/4 of the available space */
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .content-section {
             margin-bottom: 20px;
-            border: 5px solid #ddd; /* Light gray border around the image */
-            border-radius: 4px; /* Slightly rounded corners for the image */
+            padding: 15px;
+            background-color: #fff;
+            border: 1px solid #eee;
+            border-radius: 4px;
         }
 
-        .important-text {
-            font-weight: bold; /* Makes the text bold */
-            color: #28a745; /* A green color for emphasis */
+        h2 {
+            color: #007bff;
+            margin-bottom: 10px;
         }
 
-        .list-item {
-            margin-bottom: 10px; /* Spacing between list items */
-            padding-left: 20px; /* Indentation for list items */
-            list-style-type: square; /* Uses square bullets */
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 30px;
+            background-color: #333;
+            color: #fff;
         }
 
-        .highlighted {
-            background-color: #ffeeba; /* Light yellow background for highlighting */
-            padding: 5px;
-            border-radius: 3px;
+        /* Media Queries for Responsiveness */
+
+        /* Mobile View (up to 600px) */
+        @media (max-width: 600px) {
+            nav .container {
+                flex-direction: column; /* Stack logo and links */
+                align-items: flex-start;
+            }
+
+            nav ul {
+                flex-direction: column; /* Stack links vertically */
+                margin-top: 10px;
+            }
+
+            nav ul li {
+                margin-left: 0;
+                margin-bottom: 10px;
+            }
+
+            .main-content {
+                flex-direction: column; /* Stack main and sidebar */
+            }
+
+            .main-area, .sidebar {
+                flex: 1; /* Both take full width */
+                margin-bottom: 20px;
+            }
         }
 
-        p {
-            margin-bottom: 15px; /* Spacing between paragraphs */
-        }
+        /* Tablet View (601px to 900px) */
+        @media (min-width: 601px) and (max-width: 900px) {
+            .main-content {
+                flex-direction: column; /* Stack main and sidebar */
+            }
 
-        /* Example of a pseudo-class selector */
-        a:hover {
-            color: #dc3545; /* Changes link color on hover to red */
+            .main-area, .sidebar {
+                flex: 1; /* Both take full width */
+                margin-bottom: 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Welcome to My Styled Page</h1>
-        <img id="main-image" src="placeholder-image.jpg" alt="A placeholder image">
-        <p>This is some <span class="important-text">important</span> text to demonstrate the use of a class selector.</p>
-        <p>Here's a list with some <span class="highlighted">highlighted</span> items:</p>
-        <ul>
-            <li class="list-item">Item number one</li>
-            <li class="list-item">Another item in the list</li>
-            <li class="list-item">A <a href="#">link</a> for demonstration</li>
-        </ul>
-        <p id="last-paragraph">This is the last paragraph, styled implicitly by the element selector.</p>
+    <nav>
+        <div class="container">
+            <div class="logo">My Website</div>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Services</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container main-content">
+        <main class="main-area">
+            <h2>Main Content Area</h2>
+            <div class="content-section">
+                <h3>Section 1</h3>
+                <p>This is the content for section 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+            </div>
+            <div class="content-section">
+                <h3>Section 2</h3>
+                <p>Content for section 2 goes here. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+            </div>
+        </main>
+        <aside class="sidebar">
+            <h2>Sidebar</h2>
+            <div class="content-section">
+                <h3>Widget 1</h3>
+                <p>Some information in the sidebar.</p>
+            </div>
+            <div class="content-section">
+                <h3>Widget 2</h3>
+                <p>Another widget here.</p>
+            </div>
+        </aside>
     </div>
+
+    <footer>
+        <div class="container">&copy; 2025 My Website</div>
+    </footer>
 </body>
 </html>
