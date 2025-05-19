@@ -3,131 +3,390 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DOM Manipulation</title>
+    <title>JavaScript Event Playground</title>
     <style>
-        /* Optional CSS for basic styling */
         body {
             font-family: sans-serif;
             margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
         }
 
-        header {
-            margin-bottom: 20px;
-            text-align: center;
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
-        #content-area {
+        h1, h2, h3 {
+            color: #555;
+        }
+
+        section {
+            margin-bottom: 30px;
             padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid #ccc;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        button {
+            padding: 10px 15px;
+            margin-right: 10px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
             border-radius: 5px;
         }
 
-        .dynamic-paragraph {
-            margin-top: 10px;
-            padding: 8px;
-            background-color: #f9f9f9;
-            border: 1px solid #eee;
-            border-radius: 3px;
+        button:hover {
+            background-color: #0056b3;
         }
 
-        footer {
-            margin-top: 30px;
+        #hoverArea {
+            background-color: lightblue;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 5px;
             text-align: center;
-            color: #777;
+        }
+
+        #hoverArea:hover {
+            background-color: lightcoral;
+            color: white;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            width: calc(100% - 18px);
+        }
+
+        .error-message {
+            color: red;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        /* Image Gallery Styles */
+        #image-gallery {
+            position: relative;
+            overflow: hidden;
+        }
+
+        #gallery-container {
+            display: flex;
+            width: 100%;
+        }
+
+        .gallery-image {
+            min-width: 100%;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        #prevButton, #nextButton {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        #prevButton {
+            left: 10px;
+        }
+
+        #nextButton {
+            right: 10px;
+        }
+
+        /* Accordion Styles */
+        .accordion-item {
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            background-color: #eee;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .accordion-header:hover {
+            background-color: #ddd;
+        }
+
+        .accordion-content {
+            padding: 10px;
+            display: none;
+            background-color: #f9f9f9;
+        }
+
+        .accordion-content.active {
+            display: block;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Welcome to the Dynamic Page</h1>
-        <p class="description">This page demonstrates DOM manipulation with JavaScript.</p>
-    </header>
+    <div class="container">
+        <h1>JavaScript Interactive Playground</h1>
 
-    <main>
-        <div id="content-area">
-            <p id="dynamic-text">Initial text content.</p>
-            <button id="change-text-button">Change Text</button>
-            <button id="change-style-button">Change Style</button>
-        </div>
+        <section id="event-handling">
+            <h2>1. Event Handling 🎈</h2>
+            <button id="clickButton">Click Me!</button>
+            <div id="hoverArea">Hover Over Me</div>
+            <input type="text" id="keypressInput" placeholder="Type something...">
+            <p id="keypressOutput"></p>
+            <button id="doubleClickButton">Double Click Me for a Surprise!</button>
+        </section>
 
-        <div id="element-manipulation">
-            <button id="add-element-button">Add Paragraph</button>
-            <button id="remove-element-button">Remove Last Paragraph</button>
-        </div>
-    </main>
+        <section id="interactive-elements">
+            <h2>2. Interactive Elements 🎮</h2>
 
-    <footer>
-        <p>&copy; 2025 My Dynamic Page</p>
-    </footer>
+            <div id="button-changer">
+                <button id="changeTextButton">Change Text</button>
+                <p id="buttonText">Initial Text</p>
+            </div>
+
+            <div id="image-gallery">
+                <h3>Image Gallery</h3>
+                <div id="gallery-container">
+                    <img src="https://via.placeholder.com/150/FFC0CB/000000?Text=Image+1" alt="Image 1" class="gallery-image active">
+                    <img src="https://via.placeholder.com/150/ADD8E6/000000?Text=Image+2" alt="Image 2" class="gallery-image">
+                    <img src="https://via.placeholder.com/150/90EE90/000000?Text=Image+3" alt="Image 3" class="gallery-image">
+                </div>
+                <button id="prevButton">Previous</button>
+                <button id="nextButton">Next</button>
+            </div>
+
+            <div id="accordion">
+                <h3>Accordion Content</h3>
+                <div class="accordion-item">
+                    <div class="accordion-header">Section 1</div>
+                    <div class="accordion-content">Content for Section 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</div>
+                </div>
+                <div class="accordion-item">
+                    <div class="accordion-header">Section 2</div>
+                    <div class="accordion-content">Content for Section 2. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</div>
+                </div>
+                <div class="accordion-item">
+                    <div class="accordion-header">Section 3</div>
+                    <div class="accordion-content">Content for Section 3. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="form-validation">
+            <h2>3. Form Validation 📋✅</h2>
+            <form id="signupForm">
+                <div>
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" required>
+                    <p class="error-message" id="nameError"></p>
+                </div>
+                <div>
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" required>
+                    <p class="error-message" id="emailError"></p>
+                </div>
+                <div>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" required>
+                    <p class="error-message" id="passwordError"></p>
+                </div>
+                <button type="submit">Sign Up</button>
+                <p id="formMessage"></p>
+            </form>
+        </section>
+    </div>
 
     <script>
-        // Function to change the text content of the dynamic-text paragraph
-        function changeText() {
-            const dynamicTextElement = document.getElementById('dynamic-text');
-            if (dynamicTextElement) {
-                dynamicTextElement.textContent = 'The text has been changed dynamically!';
-            }
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Event Handling 🎈
+            const clickButton = document.getElementById('clickButton');
+            const hoverArea = document.getElementById('hoverArea');
+            const keypressInput = document.getElementById('keypressInput');
+            const keypressOutput = document.getElementById('keypressOutput');
+            const doubleClickButton = document.getElementById('doubleClickButton');
 
-        // Function to change the CSS style of the content-area
-        function changeStyle() {
-            const contentAreaElement = document.getElementById('content-area');
-            if (contentAreaElement) {
-                contentAreaElement.style.backgroundColor = '#e0f7fa'; // Light blue background
-                contentAreaElement.style.padding = '20px';
-                contentAreaElement.style.borderRadius = '5px';
-                contentAreaElement.style.border = '1px solid #b2ebf2';
-            }
-        }
+            clickButton.addEventListener('click', () => {
+                alert('Button clicked! 🎉');
+            });
 
-        // Function to add a new paragraph element
-        function addParagraph() {
-            const elementManipulationArea = document.getElementById('element-manipulation');
-            if (elementManipulationArea) {
-                const newParagraph = document.createElement('p');
-                newParagraph.textContent = 'A new paragraph added dynamically.';
-                newParagraph.classList.add('dynamic-paragraph'); // Optional: Add a class for potential styling
-                elementManipulationArea.appendChild(newParagraph);
-            }
-        }
+            hoverArea.addEventListener('mouseover', () => {
+                hoverArea.textContent = 'You\'re hovering!';
+            });
 
-        // Function to remove the last added paragraph element
-        function removeLastParagraph() {
-            const elementManipulationArea = document.getElementById('element-manipulation');
-            if (elementManipulationArea) {
-                const dynamicParagraphs = elementManipulationArea.querySelectorAll('.dynamic-paragraph');
-                if (dynamicParagraphs.length > 0) {
-                    const lastParagraph = dynamicParagraphs[dynamicParagraphs.length - 1];
-                    elementManipulationArea.removeChild(lastParagraph);
+            hoverArea.addEventListener('mouseout', () => {
+                hoverArea.textContent = 'Hover Over Me';
+            });
+
+            keypressInput.addEventListener('keypress', (event) => {
+                keypressOutput.textContent = `You typed: ${event.key}`;
+            });
+
+            doubleClickButton.addEventListener('dblclick', () => {
+                alert('Surprise! You found the secret action! 🤫');
+            });
+
+            // Bonus: Long press (simulated with a timer)
+            let pressTimer;
+            doubleClickButton.addEventListener('mousedown', () => {
+                pressTimer = setTimeout(() => {
+                    alert('Long press detected! ✨');
+                }, 1500); // Adjust time (in milliseconds) as needed
+            });
+
+            doubleClickButton.addEventListener('mouseup', () => {
+                clearTimeout(pressTimer);
+            });
+            doubleClickButton.addEventListener('mouseleave', () => {
+                clearTimeout(pressTimer);
+            });
+
+            // 2. Interactive Elements 🎮
+            const changeTextButton = document.getElementById('changeTextButton');
+            const buttonTextElement = document.getElementById('buttonText');
+            let isTextChanged = false;
+
+            changeTextButton.addEventListener('click', () => {
+                isTextChanged = !isTextChanged;
+                buttonTextElement.textContent = isTextChanged ? 'Text Changed!' : 'Initial Text';
+                changeTextButton.textContent = isTextChanged ? 'Revert Text' : 'Change Text';
+            });
+
+            // Image Gallery
+            const galleryContainer = document.getElementById('gallery-container');
+            const prevButton = document.getElementById('prevButton');
+            const nextButton = document.getElementById('nextButton');
+            const images = document.querySelectorAll('#gallery-container img');
+            let currentIndex = 0;
+
+            function updateGallery() {
+                galleryContainer.style.transform = `translateX(-${currentIndex * 100}%)`;
+            }
+
+            prevButton.addEventListener('click', () => {
+                currentIndex = Math.max(currentIndex - 1, 0);
+                updateGallery();
+            });
+
+            nextButton.addEventListener('click', () => {
+                currentIndex = Math.min(currentIndex + 1, images.length - 1);
+                updateGallery();
+            });
+
+            // Accordion
+            const accordionHeaders = document.querySelectorAll('.accordion-header');
+
+            accordionHeaders.forEach(header => {
+                header.addEventListener('click', () => {
+                    const content = header.nextElementSibling;
+                    const isActive = content.classList.contains('active');
+
+                    // Close all other open accordion items
+                    document.querySelectorAll('.accordion-content.active').forEach(item => {
+                        if (item !== content) {
+                            item.classList.remove('active');
+                        }
+                    });
+
+                    content.classList.toggle('active');
+                });
+            });
+
+            // Bonus: Animation (simple CSS transition is used for the gallery)
+
+            // 3. Form Validation 📋✅
+            const signupForm = document.getElementById('signupForm');
+            const nameInput = document.getElementById('name');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const nameError = document.getElementById('nameError');
+            const emailError = document.getElementById('emailError');
+            const passwordError = document.getElementById('passwordError');
+            const formMessage = document.getElementById('formMessage');
+
+            signupForm.addEventListener('submit', (event) => {
+                event.preventDefault(); // Prevent default form submission
+                validateForm();
+            });
+
+            nameInput.addEventListener('input', () => {
+                validateName();
+            });
+
+            emailInput.addEventListener('input', () => {
+                validateEmail();
+            });
+
+            passwordInput.addEventListener('input', () => {
+                validatePassword();
+            });
+
+            function validateName() {
+                if (!nameInput.value.trim()) {
+                    nameError.textContent = 'Name is required.';
+                    return false;
                 } else {
-                    alert('No more paragraphs to remove!');
+                    nameError.textContent = '';
+                    return true;
                 }
             }
-        }
 
-        // Event listeners to trigger the functions when buttons are clicked
-        document.addEventListener('DOMContentLoaded', () => {
-            const changeTextButton = document.getElementById('change-text-button');
-            const changeStyleButton = document.getElementById('change-style-button');
-            const addElementButton = document.getElementById('add-element-button');
-            const removeElementButton = document.getElementById('remove-element-button');
-
-            if (changeTextButton) {
-                changeTextButton.addEventListener('click', changeText);
+            function validateEmail() {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(emailInput.value)) {
+                    emailError.textContent = 'Invalid email format.';
+                    return false;
+                } else {
+                    emailError.textContent = '';
+                    return true;
+                }
             }
 
-            if (changeStyleButton) {
-                changeStyleButton.addEventListener('click', changeStyle);
+            function validatePassword() {
+                if (passwordInput.value.length < 8) {
+                    passwordError.textContent = 'Password must be at least 8 characters long.';
+                    return false;
+                } else {
+                    passwordError.textContent = '';
+                    return true;
+                }
             }
 
-            if (addElementButton) {
-                addElementButton.addEventListener('click', addParagraph);
+            function validateForm() {
+                const isNameValid = validateName();
+                const isEmailValid = validateEmail();
+                const isPasswordValid = validatePassword();
+
+                if (isNameValid && isEmailValid && isPasswordValid) {
+                    formMessage.textContent = 'Sign up successful!';
+                    formMessage.style.color = 'green';
+                    signupForm.reset(); // Clear the form
+                } else {
+                    formMessage.textContent = 'Please fix the errors in the form.';
+                    formMessage.style.color = 'red';
+                }
             }
 
-            if (removeElementButton) {
-                removeElementButton.addEventListener('click', removeLastParagraph);
-            }
+            // Bonus: Real-time feedback (already implemented with input event listeners)
         });
     </script>
 </body>
