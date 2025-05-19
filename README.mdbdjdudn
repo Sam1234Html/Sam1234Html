@@ -6,41 +6,50 @@
     <title>CSS Animation and Local Storage</title>
     <style>
         .animated-button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 15px 32px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
+            background-color: #ffc107; /* Amber */
+            color: #212529; /* Dark gray */
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
             cursor: pointer;
-            border-radius: 5px;
-            position: relative; /* For animation positioning */
+            font-size: 18px;
+            transition: background-color 0.3s ease;
         }
 
-        .animated-button.animate {
-            animation: pulse 1s ease-in-out infinite alternate;
+        .animated-button:hover {
+            background-color: #e0a800; /* Darker amber */
         }
 
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-                opacity: 1;
+        .animated-button.shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% {
+                transform: translate3d(-1px, 0, 0);
             }
-            100% {
-                transform: scale(1.1);
-                opacity: 0.7;
+
+            20%, 80% {
+                transform: translate3d(2px, 0, 0);
+            }
+
+            30%, 50%, 70% {
+                transform: translate3d(-4px, 0, 0);
+            }
+
+            40%, 60% {
+                transform: translate3d(4px, 0, 0);
             }
         }
     </style>
 </head>
 <body>
 
-    <button id="myButton" class="animated-button">Click Me to Animate</button>
+    <button id="shakeButton" class="animated-button">Shake Me!</button>
 
     <script>
-        const button = document.getElementById('myButton');
-        const animationKey = 'animationTriggered';
+        const shakeButton = document.getElementById('shakeButton');
+        const shakePreferenceKey = 'shakeAnimationTriggered';
 
         // Function to store user preference in localStorage
         function storePreference(key, value) {
@@ -53,20 +62,26 @@
             return storedValue ? JSON.parse(storedValue) : null;
         }
 
-        // Function to trigger the animation and store the preference
-        function triggerAnimation() {
-            button.classList.add('animate');
-            storePreference(animationKey, true);
+        // Function to trigger the shake animation and store the preference
+        function triggerShakeAnimation() {
+            shakeButton.classList.add('shake');
+            storePreference(shakePreferenceKey, true);
+
+            // Remove the class after the animation duration to allow re-triggering
+            setTimeout(() => {
+                shakeButton.classList.remove('shake');
+            }, 500); // Matches the animation duration
         }
 
-        // Check if the animation was triggered previously
-        const wasAnimated = getPreference(animationKey);
-        if (wasAnimated) {
-            button.classList.add('animate');
+        // Check if the shake animation was triggered previously (optional: can be used to set an initial state)
+        const wasShakeTriggered = getPreference(shakePreferenceKey);
+        if (wasShakeTriggered) {
+            // Optionally apply some initial styling or state if the animation was triggered before
+            console.log("Shake animation was triggered in a previous session.");
         }
 
-        // Event listener to trigger the animation on click
-        button.addEventListener('click', triggerAnimation);
+        // Event listener to trigger the animation on button click
+        shakeButton.addEventListener('click', triggerShakeAnimation);
     </script>
 
 </body>
