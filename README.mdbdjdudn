@@ -1,42 +1,20 @@
--- Question 1: Total payment amount for each payment date (top 5 latest)
-SELECT
-    paymentDate,
-    SUM(amount) AS totalPaymentAmount
-FROM
-    payments
-GROUP BY
-    paymentDate
-ORDER BY
-    paymentDate DESC
-LIMIT 5;
+-- Question 1: Drop an index named IdxPhone from the customers table.
+DROP INDEX IdxPhone ON customers;
 
--- Question 2: Average credit limit of each customer
-SELECT
-    customerName,
-    country,
-    AVG(creditLimit) AS averageCreditLimit
-FROM
-    customers
-GROUP BY
-    customerName,
-    country;
+-- Question 2: Create a user named 'bob' with the password 'S$cu3r3!', restricted to the localhost hostname.
+CREATE USER 'bob'@'localhost' IDENTIFIED BY 'S$cu3r3!';
 
--- Question 3: Total price of products ordered
-SELECT
-    productCode,
-    quantityOrdered,
-    (quantityOrdered * priceEach) AS totalPrice
-FROM
-    orderdetails
-GROUP BY
-    productCode,
-    quantityOrdered;
+-- Question 3: Grant the INSERT privilege to the user 'bob' on the salesDB database.
+-- Note: To grant privileges on an entire database, you use 'database_name.*'.
+-- If salesDB is an actual database name, the query below will work.
+GRANT INSERT ON salesDB.* TO 'bob'@'localhost';
 
--- Question 4: Highest payment amount for each check number
-SELECT
-    checkNumber,
-    MAX(amount) AS highestPaymentAmount
-FROM
-    payments
-GROUP BY
-    checkNumber;
+-- Question 4: Change the password for the user 'bob' to 'P$55!23'.
+-- For MySQL 8.0 and later:
+ALTER USER 'bob'@'localhost' IDENTIFIED BY 'P$55!23';
+
+-- For older MySQL versions (prior to 8.0), you might use:
+-- SET PASSWORD FOR 'bob'@'localhost' = 'P$55!23';
+-- Or:
+-- UPDATE mysql.user SET authentication_string = PASSWORD('P$55!23') WHERE user = 'bob' AND host = 'localhost';
+-- FLUSH PRIVILEGES; -- Remember to flush privileges after direct updates to mysql.user table
