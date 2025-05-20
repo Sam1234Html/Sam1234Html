@@ -1,112 +1,260 @@
--- Question 1: Achieving 1NF (First Normal Form) 🛠️
--- Task: Transform the ProductDetail table (OrderID, CustomerName, Products)
--- where Products contains multiple values, into 1NF.
--- This requires splitting the 'Products' column into multiple rows.
--- Note: The exact syntax for splitting strings into rows varies by SQL dialect.
--- This example uses a common technique often simulated with a recursive CTE or a numbers table.
--- For simplicity, let's assume a hypothetical function like UNNEST_STRING_ARRAY or a series of UNION ALL for known products.
+-- inventory_system.sql
+-- Database Design and Implementation for an Inventory Tracking System
 
--- Method 1: Using a Recursive CTE (Common Table Expression) - SQL dialects like PostgreSQL, SQL Server, Oracle often support this.
--- This is a more dynamic way to split comma-separated strings.
--- For MySQL, this often requires a numbers table or stored procedures, or more complex string functions.
+-- Section 1: Database Creation and Selection
+-- Drop the database if it already exists to ensure a clean slate
+DROP DATABASE IF EXISTS inventory_db;
 
--- Let's define a CTE to simulate the ProductDetail table for demonstration.
-WITH ProductDetail AS (
-    SELECT 101 AS OrderID, 'John Doe' AS CustomerName, 'Laptop, Mouse' AS Products UNION ALL
-    SELECT 102, 'Jane Smith', 'Tablet, Keyboard, Mouse' UNION ALL
-    SELECT 103, 'Emily Clark', 'Phone'
-),
--- This CTE splits the 'Products' string into individual product names.
--- Note: MySQL 8.0+ can use Common Table Expressions, but string splitting is still manual.
--- For a truly portable MySQL solution, you'd likely use a numbers table or procedural code.
--- This example conceptualizes the logic assuming string splitting capability.
-ProductSplit AS (
-    SELECT
-        OrderID,
-        CustomerName,
-        TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(Products, ',', n.digit+1), ',', -1)) AS Product
-    FROM
-        ProductDetail
-    JOIN (
-        SELECT 0 AS digit UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 -- Extend as needed for max products
-    ) AS n
-    ON CHAR_LENGTH(Products) - CHAR_LENGTH(REPLACE(Products, ',', '')) >= n.digit
-)
-SELECT
-    OrderID,
-    CustomerName,
-    Product
-FROM
-    ProductSplit
-ORDER BY
-    OrderID, Product;
+-- Create the new inventory database
+CREATE DATABASE inventory_db;
 
--- Explanation for Q1:
--- The original table violates 1NF because the 'Products' column is multi-valued (contains repeating groups of products).
--- To achieve 1NF, we break down each multi-valued entry into separate rows, so each row
--- contains an atomic value for 'Product'. This query creates a result set that is in 1NF.
--- In a real-world scenario, you'd typically create a new 'OrderProducts' table:
--- CREATE TABLE OrderProducts (
---     OrderID INT,
---     Product VARCHAR(255),
---     PRIMARY KEY (OrderID, Product)
--- );
--- Then INSERT data into it after splitting.
+-- Use the newly created database
+USE inventory_db;
 
--- Question 2: Achieving 2NF (Second Normal Form) 🧩
--- Task: Transform the OrderDetails table into 2NF by removing partial dependencies.
--- The table has OrderID (PK), CustomerName, Product, Quantity.
--- Partial dependency: CustomerName depends only on OrderID (part of a potential composite PK if Product is included),
--- not on (OrderID, Product).
--- To achieve 2NF, we decompose the table into two new tables:
--- 1. Orders (OrderID, CustomerName)
--- 2. OrderItems (OrderID, Product, Quantity)
+-- Section 2: Table Creation with Constraints and Relationships
 
--- Assume the OrderDetails table exists as described:
--- CREATE TABLE OrderDetails (
---     OrderID INT,
---     CustomerName VARCHAR(255),
---     Product VARCHAR(255),
---     Quantity INT,
---     PRIMARY KEY (OrderID, Product) -- Assuming (OrderID, Product) is the composite primary key
--- );
--- INSERT INTO OrderDetails (OrderID, CustomerName, Product, Quantity) VALUES
--- (101, 'John Doe', 'Laptop', 2),
--- (101, 'John Doe', 'Mouse', 1),
--- (102, 'Jane Smith', 'Tablet', 3),
--- (102, 'Jane Smith', 'Keyboard', 1),
--- (102, 'Jane Smith', 'Mouse', 2),
--- (103, 'Emily Clark', 'Phone', 1);
+-- 1. Suppliers Table
+-- Stores information about the suppliers of products.
+-- SupplierID: Primary Key, unique identifier for each supplier.
+-- SupplierName: NOT NULL, name of the supplier.
+-- ContactPerson: Contact person at the supplier (optional).
+-- Phone: UNIQUE, phone number for the supplier (ensure no duplicates).
+-- Email: UNIQUE, email address for the supplier (ensure no duplicates).
+-- Address: Supplier's address.
+CREATE TABLE Suppliers (
+    SupplierID INT PRIMARY KEY AUTO_INCREMENT,
+    SupplierName VARCHAR(255) NOT NULL,
+    ContactPerson VARCHAR(255),
+    Phone VARCHAR(20) UNIQUE,
+    Email VARCHAR(255) UNIQUE,
+    Address TEXT
+);
 
--- Query to create the 'Orders' table (containing OrderID and CustomerName)
--- This table removes the partial dependency of CustomerName on OrderID.
--- We use DISTINCT to get unique OrderID-CustomerName pairs.
-SELECT DISTINCT
-    OrderID,
-    CustomerName
-FROM
-    OrderDetails
-ORDER BY
-    OrderID;
+-- 2. Categories Table
+-- Stores different product categories.
+-- CategoryID: Primary Key, unique identifier for each category.
+-- CategoryName: NOT NULL, unique name of the category.
+-- Description: Description of the category (optional).
+CREATE TABLE Categories (
+    CategoryID INT PRIMARY KEY AUTO_INCREMENT,
+    CategoryName VARCHAR(100) NOT NULL UNIQUE,
+    Description TEXT
+);
 
--- Query to create the 'OrderItems' table (containing OrderID, Product, Quantity)
--- This table retains the details of each item in an order.
-SELECT
-    OrderID,
-    Product,
-    Quantity
-FROM
-    OrderDetails
-ORDER BY
-    OrderID, Product;
+-- 3. Products Table
+-- Stores details about each product in the inventory.
+-- ProductID: Primary Key, unique identifier for each product.
+-- ProductName: NOT NULL, name of the product.
+-- Description: Product description (optional).
+-- Price: NOT NULL, price of the product (DECIMAL for currency).
+-- StockQuantity: NOT NULL, current quantity in stock (default to 0).
+-- SupplierID: Foreign Key referencing Suppliers table (1-M relationship with Suppliers).
+-- CategoryID: Foreign Key referencing Categories table (1-M relationship with Categories).
+-- DateAdded: Date when the product was added to the system (default to current timestamp).
+CREATE TABLE Products (
+    ProductID INT PRIMARY KEY AUTO_INCREMENT,
+    ProductName VARCHAR(255) NOT NULL,
+    Description TEXT,
+    Price DECIMAL(10, 2) NOT NULL CHECK (Price >= 0), -- Price cannot be negative
+    StockQuantity INT NOT NULL DEFAULT 0 CHECK (StockQuantity >= 0), -- Stock cannot be negative
+    SupplierID INT,
+    CategoryID INT,
+    DateAdded TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (SupplierID) REFERENCES Suppliers(SupplierID) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (CategoryID) REFERENCES Categories(CategoryID) ON DELETE SET NULL ON UPDATE CASCADE
+);
 
--- Explanation for Q2:
--- The original 'OrderDetails' table with a composite primary key like (OrderID, Product)
--- violates 2NF because 'CustomerName' depends only on 'OrderID' (a part of the primary key),
--- not on the full composite key (OrderID, Product). This is a partial dependency.
--- To resolve this, we decompose the table:
--- 1. A new 'Orders' table is created (or selected) with 'OrderID' as the primary key and 'CustomerName' as a non-key attribute.
---    'CustomerName' is now fully dependent on 'OrderID' in this new table.
--- 2. A new 'OrderItems' table is created (or selected) with a composite primary key (OrderID, Product),
---    and 'Quantity' fully depends on this composite key.
--- This two-table structure ensures that each non-key attribute is fully dependent on its respective primary key.
+-- 4. Customers Table
+-- Stores information about customers who place orders.
+-- CustomerID: Primary Key, unique identifier for each customer.
+-- FirstName: NOT NULL, customer's first name.
+-- LastName: NOT NULL, customer's last name.
+-- Email: UNIQUE, customer's email address (ensure no duplicates).
+-- Phone: Customer's phone number (optional, but good to have).
+-- Address: Customer's address.
+CREATE TABLE Customers (
+    CustomerID INT PRIMARY KEY AUTO_INCREMENT,
+    FirstName VARCHAR(100) NOT NULL,
+    LastName VARCHAR(100) NOT NULL,
+    Email VARCHAR(255) UNIQUE,
+    Phone VARCHAR(20),
+    Address TEXT
+);
+
+-- 5. Orders Table
+-- Stores details about customer orders.
+-- OrderID: Primary Key, unique identifier for each order.
+-- CustomerID: Foreign Key referencing Customers table (1-M relationship with Customers).
+-- OrderDate: NOT NULL, date the order was placed (default to current timestamp).
+-- TotalAmount: NOT NULL, total amount of the order (calculated, but stored for convenience).
+-- Status: Current status of the order (e.g., 'Pending', 'Shipped', 'Delivered', 'Cancelled').
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY AUTO_INCREMENT,
+    CustomerID INT NOT NULL,
+    OrderDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    TotalAmount DECIMAL(10, 2) NOT NULL CHECK (TotalAmount >= 0),
+    Status ENUM('Pending', 'Shipped', 'Delivered', 'Cancelled', 'Processing') DEFAULT 'Pending',
+    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID) ON DELETE RESTRICT ON UPDATE CASCADE -- Restrict deletion of customer if orders exist
+);
+
+-- 6. OrderItems Table (Junction Table for M-M Relationship between Orders and Products)
+-- Links orders to products and specifies the quantity and price at the time of order.
+-- OrderItemID: Primary Key, unique identifier for each order item.
+-- OrderID: Foreign Key referencing Orders table (M-M relationship with Products via Orders).
+-- ProductID: Foreign Key referencing Products table (M-M relationship with Orders via Products).
+-- Quantity: NOT NULL, quantity of the product in this specific order item.
+-- UnitPrice: NOT NULL, price of the product at the time of order (to handle price changes).
+-- (OrderID, ProductID) combination as a composite unique key to prevent duplicate items in the same order.
+CREATE TABLE OrderItems (
+    OrderItemID INT PRIMARY KEY AUTO_INCREMENT,
+    OrderID INT NOT NULL,
+    ProductID INT NOT NULL,
+    Quantity INT NOT NULL CHECK (Quantity > 0), -- Quantity must be positive
+    UnitPrice DECIMAL(10, 2) NOT NULL CHECK (UnitPrice >= 0), -- UnitPrice cannot be negative
+    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID) ON DELETE CASCADE ON UPDATE CASCADE, -- If order is deleted, its items are deleted
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID) ON DELETE RESTRICT ON UPDATE CASCADE, -- Restrict deletion of product if it's in an order
+    UNIQUE (OrderID, ProductID) -- Ensures a product is only listed once per order
+);
+
+-- 7. InventoryTransactions Table
+-- Tracks all movements of stock (e.g., stock in, stock out).
+-- TransactionID: Primary Key.
+-- ProductID: Foreign Key referencing Products table.
+-- TransactionType: (e.g., 'In' for stock received, 'Out' for sales/shipments).
+-- QuantityChange: The amount of stock added or removed.
+-- TransactionDate: When the transaction occurred.
+-- ReferenceID: Optional, could link to OrderID, ReturnID, etc.
+CREATE TABLE InventoryTransactions (
+    TransactionID INT PRIMARY KEY AUTO_INCREMENT,
+    ProductID INT NOT NULL,
+    TransactionType ENUM('In', 'Out', 'Adjustment') NOT NULL,
+    QuantityChange INT NOT NULL,
+    TransactionDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ReferenceID INT, -- Could link to OrderID if Type='Out', SupplierID if Type='In' (receipt)
+    Description TEXT,
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID) ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+-- Section 3: Sample Data Insertion (Optional, but good for testing)
+-- You can uncomment and run these inserts to populate your database with sample data.
+
+-- INSERT INTO Suppliers (SupplierName, ContactPerson, Phone, Email, Address) VALUES
+-- ('Tech Wholesalers Inc.', 'Alice Brown', '123-456-7890', 'alice@techws.com', '101 Tech St, Nairobi'),
+-- ('Gadget Distributors Ltd.', 'Bob White', '098-765-4321', 'bob@gadgetd.com', '202 Gadget Ave, Mombasa');
+
+-- INSERT INTO Categories (CategoryName, Description) VALUES
+-- ('Electronics', 'Electronic devices and components'),
+-- ('Peripherals', 'Computer input/output devices'),
+-- ('Accessories', 'Miscellaneous computer accessories');
+
+-- INSERT INTO Products (ProductName, Description, Price, StockQuantity, SupplierID, CategoryID) VALUES
+-- ('Laptop X1', 'High performance laptop', 1200.00, 50, 1, 1),
+-- ('Wireless Mouse', 'Ergonomic wireless mouse', 25.00, 200, 1, 2),
+-- ('USB-C Hub', 'Multi-port USB-C adapter', 45.00, 150, 2, 3),
+-- ('Mechanical Keyboard', 'Gaming mechanical keyboard', 90.00, 75, 2, 2);
+
+-- INSERT INTO Customers (FirstName, LastName, Email, Phone, Address) VALUES
+-- ('Mercy', 'Njoroge', 'mercy.njoroge@example.com', '0711223344', '123 Main St, Nairobi'),
+-- ('David', 'Ochieng', 'david.o@example.com', '0722334455', '456 Elm St, Kisumu');
+
+-- INSERT INTO Orders (CustomerID, TotalAmount, Status) VALUES
+-- (1, 1225.00, 'Processing'), -- Laptop (1200) + Mouse (25)
+-- (2, 90.00, 'Pending');     -- Mechanical Keyboard (90)
+
+-- INSERT INTO OrderItems (OrderID, ProductID, Quantity, UnitPrice) VALUES
+-- (1, 1, 1, 1200.00), -- Laptop X1
+-- (1, 2, 1, 25.00),   -- Wireless Mouse
+-- (2, 4, 1, 90.00);   -- Mechanical Keyboard
+
+-- INSERT INTO InventoryTransactions (ProductID, TransactionType, QuantityChange, ReferenceID, Description) VALUES
+-- (1, 'In', 50, NULL, 'Initial stock for Laptop X1'),
+-- (2, 'In', 200, NULL, 'Initial stock for Wireless Mouse'),
+-- (3, 'In', 150, NULL, 'Initial stock for USB-C Hub'),
+-- (4, 'In', 75, NULL, 'Initial stock for Mechanical Keyboard'),
+-- (1, 'Out', -1, 1, 'Sale: Order 1'),
+-- (2, 'Out', -1, 1, 'Sale: Order 1'),
+-- (4, 'Out', -1, 2, 'Sale: Order 2');
+
+-- Section 4: Indexing (Optional, but good for performance)
+-- Add indexes for common lookup columns or foreign keys to speed up queries.
+
+-- INDEXES ON FOREIGN KEYS (often automatically created by RDBMS, but good to explicitly add if not)
+CREATE INDEX idx_products_supplierid ON Products (SupplierID);
+CREATE INDEX idx_products_categoryid ON Products (CategoryID);
+CREATE INDEX idx_orders_customerid ON Orders (CustomerID);
+CREATE INDEX idx_orderitems_orderid ON OrderItems (OrderID);
+CREATE INDEX idx_orderitems_productid ON OrderItems (ProductID);
+CREATE INDEX idx_inventorytransactions_productid ON InventoryTransactions (ProductID);
+
+-- INDEXES ON COMMONLY QUERIED COLUMNS
+CREATE INDEX idx_suppliers_name ON Suppliers (SupplierName);
+CREATE INDEX idx_products_name ON Products (ProductName);
+CREATE INDEX idx_customers_email ON Customers (Email);
+CREATE INDEX idx_orders_orderdate ON Orders (OrderDate);
+
+# Inventory Tracking System Database
+
+## Project Title
+Inventory Tracking System Database Design
+
+## Description of what your project does
+This project implements a relational database schema for a simple Inventory Tracking System using MySQL. The system is designed to manage product inventory, track supplier information, categorize products, record customer orders, and log all inventory movements. It aims to provide a structured and efficient way to store and retrieve data crucial for inventory management.
+
+**Key features:**
+* **Product Management:** Stores details about various products, including price, stock quantity, and category.
+* **Supplier Management:** Keeps records of all suppliers and their contact information.
+* **Category Management:** Allows for the categorization of products.
+* **Customer Management:** Stores customer details for order processing.
+* **Order Processing:** Records customer orders, including the products purchased and quantities.
+* **Inventory Transactions:** Logs all changes in stock levels (e.g., stock receipts, sales, adjustments) for auditing and analysis.
+
+## How to run/setup the project (or import SQL)
+
+1.  **Prerequisites:**
+    * You need MySQL Server installed and running on your system.
+    * A MySQL client (e.g., MySQL Workbench, DBeaver, or the MySQL command-line client).
+
+2.  **Download the SQL file:**
+    * Clone this repository to your local machine or download the `inventory_system.sql` file directly.
+
+3.  **Execute the SQL script:**
+
+    * **Using MySQL Workbench/DBeaver (GUI):**
+        1.  Open your MySQL client.
+        2.  Connect to your MySQL server.
+        3.  Open the `inventory_system.sql` file.
+        4.  Execute the entire script. The script will drop the database if it exists, create a new one, select it, and then create all the necessary tables with their constraints and relationships.
+
+    * **Using MySQL Command-Line Client:**
+        1.  Open your terminal or command prompt.
+        2.  Navigate to the directory where you saved `inventory_system.sql`.
+        3.  Log in to your MySQL server:
+            ```bash
+            mysql -u your_username -p
+            ```
+            (Replace `your_username` with your MySQL username. You will be prompted for your password.)
+        4.  Once logged in, execute the script:
+            ```sql
+            SOURCE inventory_system.sql;
+            ```
+            (Or, you can directly run it from the shell without logging in first, but this is less common for development: `mysql -u your_username -p < inventory_system.sql`)
+
+4.  **Verification:**
+    * After execution, you should see a new database named `inventory_db` in your MySQL server.
+    * You can verify table creation by running `USE inventory_db; SHOW TABLES;` in your MySQL client.
+
+## Screenshot or link to your ERD
+
+Since I cannot directly generate an image here, you will need to create the ERD manually using a tool like:
+* **dbdiagram.io:** Online, easy to use, and can generate ERDs from SQL.
+* **Lucidchart / Draw.io:** General diagramming tools.
+* **MySQL Workbench:** Has a built-in ERD designer (Database -> Reverse Engineer or Model).
+
+**Example Text for ERD Link:**
+[Link to ERD Diagram (e.g., dbdiagram.io public link or an image hosted on GitHub Pages/Imgur)](https://www.dbdiagram.io/d/Your_ERD_Link_Here)
+
+**Conceptual ERD (for your reference in creating the actual diagram):**
+
+## The repo must include:
+* `inventory_system.sql` (the single SQL file as described above)
+* `README.md` (this file)
