@@ -1,260 +1,533 @@
--- inventory_system.sql
--- Database Design and Implementation for an Inventory Tracking System
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe Agri-tech Market Match</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        }
+        h1, h2, h3 {
+            color: #2e7d32; /* Green for agri-tech vibe */
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        form {
+            background-color: #e8f5e9; /* Light green */
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+        form div {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        input[type="text"], input[type="number"], textarea {
+            width: calc(100% - 20px);
+            padding: 12px;
+            border: 1px solid #a5d6a7; /* Lighter green border */
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+        input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+            border-color: #4CAF50;
+            outline: none;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.4);
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: block;
+            margin: 20px auto 0;
+        }
+        button:hover {
+            background-color: #388e3c;
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            background-color: #a5d6a7;
+            cursor: not-allowed;
+        }
+        p {
+            font-size: 0.95rem;
+            color: #555;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .message.success {
+            color: #2e7d32;
+            font-weight: bold;
+        }
+        .message.error {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #f8fcf8;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #c8e6c9;
+            color: #2e7d32;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+        tr:nth-child(even) {
+            background-color: #f0f4f0;
+        }
+        .market-alert {
+            background-color: #fffde7; /* Light yellow for alerts */
+            border-left: 5px solid #ffeb3b;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            color: #616161;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        .section-header {
+            background-color: #e0f2f1; /* Light teal for section headers */
+            padding: 15px;
+            margin: 30px 0 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: #00796b;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌱 Vibe Agri-tech Market Match Platform 🌱</h1>
+        <p>Connecting farmers to markets with joy and intelligence!</p>
 
--- Section 1: Database Creation and Selection
--- Drop the database if it already exists to ensure a clean slate
-DROP DATABASE IF EXISTS inventory_db;
+        <hr>
 
--- Create the new inventory database
-CREATE DATABASE inventory_db;
+        <div class="section-header">Register as a Farmer</div>
+        <form id="farmerRegistrationForm">
+            <div>
+                <label for="farmerName">Your Name:</label>
+                <input type="text" id="farmerName" required>
+            </div>
+            <div>
+                <label for="farmerLocation">Your Location (e.g., "Kisumu, Kenya"):</label>
+                <input type="text" id="farmerLocation" required>
+            </div>
+            <div>
+                <label for="farmerContact">Contact Number (e.g., +2547XXXXXXXX):</label>
+                <input type="text" id="farmerContact" required>
+            </div>
+            <div>
+                <label for="farmerProduceTypes">Produce You Grow (comma-separated, e.g., "Maize, Beans, Cabbages"):</label>
+                <input type="text" id="farmerProduceTypes" required>
+            </div>
+            <button type="submit" id="registerFarmerBtn">Register Farmer Profile</button>
+            <p id="farmerMessage" class="message"></p>
+        </form>
 
--- Use the newly created database
-USE inventory_db;
+        <hr>
 
--- Section 2: Table Creation with Constraints and Relationships
+        <div class="section-header">Current Market Prices</div>
+        <p class="market-alert">📢 Real-time prices! Stay updated for smarter sales. 📢</p>
+        <div id="marketPricesContainer">
+            <p>Loading market prices...</p>
+        </div>
 
--- 1. Suppliers Table
--- Stores information about the suppliers of products.
--- SupplierID: Primary Key, unique identifier for each supplier.
--- SupplierName: NOT NULL, name of the supplier.
--- ContactPerson: Contact person at the supplier (optional).
--- Phone: UNIQUE, phone number for the supplier (ensure no duplicates).
--- Email: UNIQUE, email address for the supplier (ensure no duplicates).
--- Address: Supplier's address.
-CREATE TABLE Suppliers (
-    SupplierID INT PRIMARY KEY AUTO_INCREMENT,
-    SupplierName VARCHAR(255) NOT NULL,
-    ContactPerson VARCHAR(255),
-    Phone VARCHAR(20) UNIQUE,
-    Email VARCHAR(255) UNIQUE,
-    Address TEXT
+        <hr>
+
+        <div class="section-header">Find Potential Buyers</div>
+        <button id="findBuyersBtn">Find My Matches!</button>
+        <p id="buyerMatchMessage" class="message"></p>
+        <div id="buyerMatchesContainer">
+            <p>Click "Find My Matches!" to see potential buyers for your produce.</p>
+        </div>
+    </div>
+
+    <script>
+        // Supabase Client Initialization
+        // !!! IMPORTANT: Replace with your actual Supabase URL and Anon Key !!!
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // e.g., 'https://xyzabcdefg.supabase.co'
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // e.g., 'eyJhbGciOiJIUzI1NiI...'
+
+        const supabase = supabase_js.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- DOM Elements ---
+        const farmerRegistrationForm = document.getElementById('farmerRegistrationForm');
+        const farmerNameInput = document.getElementById('farmerName');
+        const farmerLocationInput = document.getElementById('farmerLocation');
+        const farmerContactInput = document.getElementById('farmerContact');
+        const farmerProduceTypesInput = document.getElementById('farmerProduceTypes');
+        const registerFarmerBtn = document.getElementById('registerFarmerBtn');
+        const farmerMessage = document.getElementById('farmerMessage');
+
+        const marketPricesContainer = document.getElementById('marketPricesContainer');
+
+        const findBuyersBtn = document.getElementById('findBuyersBtn');
+        const buyerMatchMessage = document.getElementById('buyerMatchMessage');
+        const buyerMatchesContainer = document.getElementById('buyerMatchesContainer');
+
+        let currentFarmerId = null; // To store the farmer's ID after registration
+
+        // --- Helper Functions ---
+
+        async function getCurrentUserId() {
+            const { data: { user } } = await supabase.auth.getUser();
+            return user ? user.id : null;
+        }
+
+        function showMessage(element, msg, type = 'info') {
+            element.textContent = msg;
+            element.className = `message ${type}`;
+        }
+
+        // --- Farmer Registration ---
+        farmerRegistrationForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            registerFarmerBtn.disabled = true;
+            showMessage(farmerMessage, 'Registering your profile...', 'info');
+
+            const userId = await getCurrentUserId();
+            if (!userId) {
+                showMessage(farmerMessage, 'Please ensure you are logged in (Supabase Auth).', 'error');
+                registerFarmerBtn.disabled = false;
+                return;
+            }
+
+            const name = farmerNameInput.value;
+            const location = farmerLocationInput.value;
+            const contactNumber = farmerContactInput.value;
+            const produceTypes = farmerProduceTypesInput.value.split(',').map(p => p.trim());
+
+            try {
+                // Check if farmer profile already exists for this user
+                const { data: existingFarmer, error: existingFarmerError } = await supabase
+                    .from('farmers')
+                    .select('id')
+                    .eq('user_id', userId)
+                    .single();
+
+                if (existingFarmerError && existingFarmerError.code !== 'PGRST116') { // PGRST116 means 'No rows found'
+                    throw existingFarmerError;
+                }
+
+                if (existingFarmer) {
+                    // Update existing profile
+                    const { data, error } = await supabase
+                        .from('farmers')
+                        .update({ name, location, contact_number: contactNumber, produce_types: produceTypes })
+                        .eq('user_id', userId)
+                        .select(); // Use select() to get updated data
+
+                    if (error) throw error;
+                    currentFarmerId = data[0].id;
+                    showMessage(farmerMessage, 'Farmer profile updated successfully! 🚀', 'success');
+                } else {
+                    // Insert new profile
+                    const { data, error } = await supabase
+                        .from('farmers')
+                        .insert({
+                            user_id: userId,
+                            name,
+                            location,
+                            contact_number: contactNumber,
+                            produce_types: produceTypes,
+                        })
+                        .select(); // Use select() to get inserted data
+
+                    if (error) throw error;
+                    currentFarmerId = data[0].id;
+                    showMessage(farmerMessage, 'Farmer profile created successfully! 🎉', 'success');
+                }
+
+                // Clear form for new entry if desired, or keep for update
+                // farmerNameInput.value = '';
+                // farmerLocationInput.value = '';
+                // farmerContactInput.value = '';
+                // farmerProduceTypesInput.value = '';
+
+            } catch (error) {
+                showMessage(farmerMessage, `Error registering farmer: ${error.message}`, 'error');
+                console.error('Farmer registration error:', error);
+            } finally {
+                registerFarmerBtn.disabled = false;
+            }
+        });
+
+        // --- Market Price Display ---
+        async function fetchAndRenderMarketPrices() {
+            marketPricesContainer.innerHTML = '<p>Loading market prices...</p>';
+            try {
+                const { data, error } = await supabase
+                    .from('market_prices')
+                    .select('*')
+                    .order('recorded_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (data.length === 0) {
+                    marketPricesContainer.innerHTML = '<p>No market prices available yet. Check back soon!</p>';
+                    return;
+                }
+
+                let tableHtml = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Produce</th>
+                                <th>Price</th>
+                                <th>Unit</th>
+                                <th>Market</th>
+                                <th>Recorded At</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                data.forEach(price => {
+                    tableHtml += `
+                        <tr>
+                            <td>${price.produce_type}</td>
+                            <td>KSh ${price.price_per_unit.toLocaleString()}</td>
+                            <td>${price.unit}</td>
+                            <td>${price.market_location}</td>
+                            <td>${new Date(price.recorded_at).toLocaleString()}</td>
+                        </tr>
+                    `;
+                });
+                tableHtml += `</tbody></table>`;
+                marketPricesContainer.innerHTML = tableHtml;
+
+            } catch (error) {
+                marketPricesContainer.innerHTML = `<p class="message error">Error loading prices: ${error.message}</p>`;
+                console.error('Error fetching market prices:', error);
+            }
+        }
+
+        // Real-time Market Price Updates
+        const marketPriceChannel = supabase
+            .channel('market_prices_changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'market_prices' }, (payload) => {
+                console.log('Real-time market price change received:', payload);
+                // Re-fetch and re-render to ensure UI is up-to-date
+                fetchAndRenderMarketPrices();
+            })
+            .subscribe();
+
+        // --- Find Potential Buyers ---
+        findBuyersBtn.addEventListener('click', async () => {
+            findBuyersBtn.disabled = true;
+            showMessage(buyerMatchMessage, 'Searching for potential buyers...', 'info');
+            buyerMatchesContainer.innerHTML = '<p>Searching...</p>';
+
+            const userId = await getCurrentUserId();
+            if (!userId) {
+                showMessage(buyerMatchMessage, 'Please log in to find matches.', 'error');
+                findBuyersBtn.disabled = false;
+                return;
+            }
+
+            try {
+                // Get the current farmer's produce types
+                const { data: farmerData, error: farmerError } = await supabase
+                    .from('farmers')
+                    .select('id, produce_types')
+                    .eq('user_id', userId)
+                    .single();
+
+                if (farmerError && farmerError.code === 'PGRST116') {
+                    showMessage(buyerMatchMessage, 'Please register your farmer profile first!', 'error');
+                    findBuyersBtn.disabled = false;
+                    buyerMatchesContainer.innerHTML = ''; // Clear "Searching..."
+                    return;
+                }
+                if (farmerError) throw farmerError;
+
+                currentFarmerId = farmerData.id; // Update currentFarmerId if not set
+
+                const farmerProduceTypes = farmerData.produce_types;
+
+                if (!farmerProduceTypes || farmerProduceTypes.length === 0) {
+                    showMessage(buyerMatchMessage, 'Please specify your produce types in your farmer profile to find matches.', 'info');
+                    findBuyersBtn.disabled = false;
+                    buyerMatchesContainer.innerHTML = '';
+                    return;
+                }
+
+                // Find buyers whose 'produce_required' array contains any of the farmer's 'produce_types'
+                // This is a simplified matching. Real-world would involve location, quantity, etc.
+                const { data: buyersData, error: buyersError } = await supabase
+                    .from('buyers')
+                    .select('*')
+                    .overlaps('produce_required', farmerProduceTypes); // 'overlaps' finds rows where arrays have common elements
+
+                if (buyersError) throw buyersError;
+
+                if (buyersData.length === 0) {
+                    showMessage(buyerMatchMessage, `No direct matches found for your produce (${farmerProduceTypes.join(', ')}). Try again later!`, 'info');
+                    buyerMatchesContainer.innerHTML = '<p>No buyers currently seeking your produce.</p>';
+                } else {
+                    showMessage(buyerMatchMessage, `Found ${buyersData.length} potential buyer(s)! 🎉`, 'success');
+                    let matchesHtml = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Buyer Name</th>
+                                    <th>Location</th>
+                                    <th>Needs</th>
+                                    <th>Contact</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    buyersData.forEach(buyer => {
+                        matchesHtml += `
+                            <tr>
+                                <td>${buyer.name}</td>
+                                <td>${buyer.location}</td>
+                                <td>${buyer.produce_required.join(', ')}</td>
+                                <td>${buyer.contact_number}</td>
+                            </tr>
+                        `;
+                    });
+                    matchesHtml += `</tbody></table>`;
+                    buyerMatchesContainer.innerHTML = matchesHtml;
+                }
+
+            } catch (error) {
+                showMessage(buyerMatchMessage, `Error finding matches: ${error.message}`, 'error');
+                console.error('Buyer matching error:', error);
+            } finally {
+                findBuyersBtn.disabled = false;
+            }
+        });
+
+        // --- Conceptual AI Function (Requires a secure backend endpoint for actual Claude.ai calls) ---
+        // This function is for demonstration of how you might *conceptually* use AI.
+        // In a real app, this would hit an Edge Function or your own backend server.
+        async function getAIRecommendation(promptText) {
+            console.log("Simulating AI analysis with prompt:", promptText);
+            // Replace this with a fetch call to your secure backend endpoint
+            // Example:
+            /*
+            try {
+                const response = await fetch('/api/get-ai-analysis', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ prompt: promptText }),
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'AI analysis failed');
+                return data.recommendation; // Assuming your API returns a 'recommendation' field
+            } catch (error) {
+                console.error("AI recommendation error:", error);
+                return "Could not get AI recommendation at this time.";
+            }
+            */
+            return "AI recommendation: Monitor current price trends closely. Selling towards the end of the week might yield better returns if the current upward trend continues.";
+        }
+
+        // --- Initial Data Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchAndRenderMarketPrices();
+            // You might want to automatically load farmer profile if user is logged in
+            // and pre-fill the form, but keeping it manual for simplicity here.
+        });
+
+        // --- Supabase Authentication Listener (Optional but good for completeness) ---
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN') {
+                console.log('User signed in:', session.user.id);
+                // Maybe fetch farmer profile here and pre-fill form
+            } else if (event === 'SIGNED_OUT') {
+                console.log('User signed out');
+       -- Table: farmers
+CREATE TABLE public.farmers (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid REFERENCES auth.users (id) ON DELETE CASCADE,
+    name text NOT NULL,
+    location text,
+    contact_number text,
+    produce_types text[] DEFAULT '{}'::text[],
+    created_at timestamp with time zone DEFAULT now()
 );
+ALTER TABLE public.farmers ENABLE ROW LEVEL SECURITY;
 
--- 2. Categories Table
--- Stores different product categories.
--- CategoryID: Primary Key, unique identifier for each category.
--- CategoryName: NOT NULL, unique name of the category.
--- Description: Description of the category (optional).
-CREATE TABLE Categories (
-    CategoryID INT PRIMARY KEY AUTO_INCREMENT,
-    CategoryName VARCHAR(100) NOT NULL UNIQUE,
-    Description TEXT
+-- RLS for farmers table
+CREATE POLICY "Enable read access for all users" ON public.farmers FOR SELECT USING (true);
+CREATE POLICY "Enable insert for authenticated users only" ON public.farmers FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Enable update for users based on user_id" ON public.farmers FOR UPDATE USING (auth.uid() = user_id);
+
+-- Table: buyers
+CREATE TABLE public.buyers (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid REFERENCES auth.users (id) ON DELETE CASCADE,
+    name text NOT NULL,
+    location text,
+    contact_number text,
+    produce_required text[] DEFAULT '{}'::text[],
+    created_at timestamp with time zone DEFAULT now()
 );
+ALTER TABLE public.buyers ENABLE ROW LEVEL SECURITY;
 
--- 3. Products Table
--- Stores details about each product in the inventory.
--- ProductID: Primary Key, unique identifier for each product.
--- ProductName: NOT NULL, name of the product.
--- Description: Product description (optional).
--- Price: NOT NULL, price of the product (DECIMAL for currency).
--- StockQuantity: NOT NULL, current quantity in stock (default to 0).
--- SupplierID: Foreign Key referencing Suppliers table (1-M relationship with Suppliers).
--- CategoryID: Foreign Key referencing Categories table (1-M relationship with Categories).
--- DateAdded: Date when the product was added to the system (default to current timestamp).
-CREATE TABLE Products (
-    ProductID INT PRIMARY KEY AUTO_INCREMENT,
-    ProductName VARCHAR(255) NOT NULL,
-    Description TEXT,
-    Price DECIMAL(10, 2) NOT NULL CHECK (Price >= 0), -- Price cannot be negative
-    StockQuantity INT NOT NULL DEFAULT 0 CHECK (StockQuantity >= 0), -- Stock cannot be negative
-    SupplierID INT,
-    CategoryID INT,
-    DateAdded TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (SupplierID) REFERENCES Suppliers(SupplierID) ON DELETE SET NULL ON UPDATE CASCADE,
-    FOREIGN KEY (CategoryID) REFERENCES Categories(CategoryID) ON DELETE SET NULL ON UPDATE CASCADE
+-- RLS for buyers table
+CREATE POLICY "Enable read access for all users" ON public.buyers FOR SELECT USING (true);
+CREATE POLICY "Enable insert for authenticated users only" ON public.buyers FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Table: market_prices (No user_id as this data would typically be populated by an admin or external API)
+CREATE TABLE public.market_prices (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    produce_type text NOT NULL,
+    price_per_unit numeric NOT NULL,
+    unit text,
+    market_location text,
+    recorded_at timestamp with time zone DEFAULT now(),
+    source text
 );
+ALTER TABLE public.market_prices ENABLE ROW LEVEL SECURITY;
 
--- 4. Customers Table
--- Stores information about customers who place orders.
--- CustomerID: Primary Key, unique identifier for each customer.
--- FirstName: NOT NULL, customer's first name.
--- LastName: NOT NULL, customer's last name.
--- Email: UNIQUE, customer's email address (ensure no duplicates).
--- Phone: Customer's phone number (optional, but good to have).
--- Address: Customer's address.
-CREATE TABLE Customers (
-    CustomerID INT PRIMARY KEY AUTO_INCREMENT,
-    FirstName VARCHAR(100) NOT NULL,
-    LastName VARCHAR(100) NOT NULL,
-    Email VARCHAR(255) UNIQUE,
-    Phone VARCHAR(20),
-    Address TEXT
-);
-
--- 5. Orders Table
--- Stores details about customer orders.
--- OrderID: Primary Key, unique identifier for each order.
--- CustomerID: Foreign Key referencing Customers table (1-M relationship with Customers).
--- OrderDate: NOT NULL, date the order was placed (default to current timestamp).
--- TotalAmount: NOT NULL, total amount of the order (calculated, but stored for convenience).
--- Status: Current status of the order (e.g., 'Pending', 'Shipped', 'Delivered', 'Cancelled').
-CREATE TABLE Orders (
-    OrderID INT PRIMARY KEY AUTO_INCREMENT,
-    CustomerID INT NOT NULL,
-    OrderDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    TotalAmount DECIMAL(10, 2) NOT NULL CHECK (TotalAmount >= 0),
-    Status ENUM('Pending', 'Shipped', 'Delivered', 'Cancelled', 'Processing') DEFAULT 'Pending',
-    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID) ON DELETE RESTRICT ON UPDATE CASCADE -- Restrict deletion of customer if orders exist
-);
-
--- 6. OrderItems Table (Junction Table for M-M Relationship between Orders and Products)
--- Links orders to products and specifies the quantity and price at the time of order.
--- OrderItemID: Primary Key, unique identifier for each order item.
--- OrderID: Foreign Key referencing Orders table (M-M relationship with Products via Orders).
--- ProductID: Foreign Key referencing Products table (M-M relationship with Orders via Products).
--- Quantity: NOT NULL, quantity of the product in this specific order item.
--- UnitPrice: NOT NULL, price of the product at the time of order (to handle price changes).
--- (OrderID, ProductID) combination as a composite unique key to prevent duplicate items in the same order.
-CREATE TABLE OrderItems (
-    OrderItemID INT PRIMARY KEY AUTO_INCREMENT,
-    OrderID INT NOT NULL,
-    ProductID INT NOT NULL,
-    Quantity INT NOT NULL CHECK (Quantity > 0), -- Quantity must be positive
-    UnitPrice DECIMAL(10, 2) NOT NULL CHECK (UnitPrice >= 0), -- UnitPrice cannot be negative
-    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID) ON DELETE CASCADE ON UPDATE CASCADE, -- If order is deleted, its items are deleted
-    FOREIGN KEY (ProductID) REFERENCES Products(ProductID) ON DELETE RESTRICT ON UPDATE CASCADE, -- Restrict deletion of product if it's in an order
-    UNIQUE (OrderID, ProductID) -- Ensures a product is only listed once per order
-);
-
--- 7. InventoryTransactions Table
--- Tracks all movements of stock (e.g., stock in, stock out).
--- TransactionID: Primary Key.
--- ProductID: Foreign Key referencing Products table.
--- TransactionType: (e.g., 'In' for stock received, 'Out' for sales/shipments).
--- QuantityChange: The amount of stock added or removed.
--- TransactionDate: When the transaction occurred.
--- ReferenceID: Optional, could link to OrderID, ReturnID, etc.
-CREATE TABLE InventoryTransactions (
-    TransactionID INT PRIMARY KEY AUTO_INCREMENT,
-    ProductID INT NOT NULL,
-    TransactionType ENUM('In', 'Out', 'Adjustment') NOT NULL,
-    QuantityChange INT NOT NULL,
-    TransactionDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    ReferenceID INT, -- Could link to OrderID if Type='Out', SupplierID if Type='In' (receipt)
-    Description TEXT,
-    FOREIGN KEY (ProductID) REFERENCES Products(ProductID) ON DELETE RESTRICT ON UPDATE CASCADE
-);
-
--- Section 3: Sample Data Insertion (Optional, but good for testing)
--- You can uncomment and run these inserts to populate your database with sample data.
-
--- INSERT INTO Suppliers (SupplierName, ContactPerson, Phone, Email, Address) VALUES
--- ('Tech Wholesalers Inc.', 'Alice Brown', '123-456-7890', 'alice@techws.com', '101 Tech St, Nairobi'),
--- ('Gadget Distributors Ltd.', 'Bob White', '098-765-4321', 'bob@gadgetd.com', '202 Gadget Ave, Mombasa');
-
--- INSERT INTO Categories (CategoryName, Description) VALUES
--- ('Electronics', 'Electronic devices and components'),
--- ('Peripherals', 'Computer input/output devices'),
--- ('Accessories', 'Miscellaneous computer accessories');
-
--- INSERT INTO Products (ProductName, Description, Price, StockQuantity, SupplierID, CategoryID) VALUES
--- ('Laptop X1', 'High performance laptop', 1200.00, 50, 1, 1),
--- ('Wireless Mouse', 'Ergonomic wireless mouse', 25.00, 200, 1, 2),
--- ('USB-C Hub', 'Multi-port USB-C adapter', 45.00, 150, 2, 3),
--- ('Mechanical Keyboard', 'Gaming mechanical keyboard', 90.00, 75, 2, 2);
-
--- INSERT INTO Customers (FirstName, LastName, Email, Phone, Address) VALUES
--- ('Mercy', 'Njoroge', 'mercy.njoroge@example.com', '0711223344', '123 Main St, Nairobi'),
--- ('David', 'Ochieng', 'david.o@example.com', '0722334455', '456 Elm St, Kisumu');
-
--- INSERT INTO Orders (CustomerID, TotalAmount, Status) VALUES
--- (1, 1225.00, 'Processing'), -- Laptop (1200) + Mouse (25)
--- (2, 90.00, 'Pending');     -- Mechanical Keyboard (90)
-
--- INSERT INTO OrderItems (OrderID, ProductID, Quantity, UnitPrice) VALUES
--- (1, 1, 1, 1200.00), -- Laptop X1
--- (1, 2, 1, 25.00),   -- Wireless Mouse
--- (2, 4, 1, 90.00);   -- Mechanical Keyboard
-
--- INSERT INTO InventoryTransactions (ProductID, TransactionType, QuantityChange, ReferenceID, Description) VALUES
--- (1, 'In', 50, NULL, 'Initial stock for Laptop X1'),
--- (2, 'In', 200, NULL, 'Initial stock for Wireless Mouse'),
--- (3, 'In', 150, NULL, 'Initial stock for USB-C Hub'),
--- (4, 'In', 75, NULL, 'Initial stock for Mechanical Keyboard'),
--- (1, 'Out', -1, 1, 'Sale: Order 1'),
--- (2, 'Out', -1, 1, 'Sale: Order 1'),
--- (4, 'Out', -1, 2, 'Sale: Order 2');
-
--- Section 4: Indexing (Optional, but good for performance)
--- Add indexes for common lookup columns or foreign keys to speed up queries.
-
--- INDEXES ON FOREIGN KEYS (often automatically created by RDBMS, but good to explicitly add if not)
-CREATE INDEX idx_products_supplierid ON Products (SupplierID);
-CREATE INDEX idx_products_categoryid ON Products (CategoryID);
-CREATE INDEX idx_orders_customerid ON Orders (CustomerID);
-CREATE INDEX idx_orderitems_orderid ON OrderItems (OrderID);
-CREATE INDEX idx_orderitems_productid ON OrderItems (ProductID);
-CREATE INDEX idx_inventorytransactions_productid ON InventoryTransactions (ProductID);
-
--- INDEXES ON COMMONLY QUERIED COLUMNS
-CREATE INDEX idx_suppliers_name ON Suppliers (SupplierName);
-CREATE INDEX idx_products_name ON Products (ProductName);
-CREATE INDEX idx_customers_email ON Customers (Email);
-CREATE INDEX idx_orders_orderdate ON Orders (OrderDate);
-
-# Inventory Tracking System Database
-
-## Project Title
-Inventory Tracking System Database Design
-
-## Description of what your project does
-This project implements a relational database schema for a simple Inventory Tracking System using MySQL. The system is designed to manage product inventory, track supplier information, categorize products, record customer orders, and log all inventory movements. It aims to provide a structured and efficient way to store and retrieve data crucial for inventory management.
-
-**Key features:**
-* **Product Management:** Stores details about various products, including price, stock quantity, and category.
-* **Supplier Management:** Keeps records of all suppliers and their contact information.
-* **Category Management:** Allows for the categorization of products.
-* **Customer Management:** Stores customer details for order processing.
-* **Order Processing:** Records customer orders, including the products purchased and quantities.
-* **Inventory Transactions:** Logs all changes in stock levels (e.g., stock receipts, sales, adjustments) for auditing and analysis.
-
-## How to run/setup the project (or import SQL)
-
-1.  **Prerequisites:**
-    * You need MySQL Server installed and running on your system.
-    * A MySQL client (e.g., MySQL Workbench, DBeaver, or the MySQL command-line client).
-
-2.  **Download the SQL file:**
-    * Clone this repository to your local machine or download the `inventory_system.sql` file directly.
-
-3.  **Execute the SQL script:**
-
-    * **Using MySQL Workbench/DBeaver (GUI):**
-        1.  Open your MySQL client.
-        2.  Connect to your MySQL server.
-        3.  Open the `inventory_system.sql` file.
-        4.  Execute the entire script. The script will drop the database if it exists, create a new one, select it, and then create all the necessary tables with their constraints and relationships.
-
-    * **Using MySQL Command-Line Client:**
-        1.  Open your terminal or command prompt.
-        2.  Navigate to the directory where you saved `inventory_system.sql`.
-        3.  Log in to your MySQL server:
-            ```bash
-            mysql -u your_username -p
-            ```
-            (Replace `your_username` with your MySQL username. You will be prompted for your password.)
-        4.  Once logged in, execute the script:
-            ```sql
-            SOURCE inventory_system.sql;
-            ```
-            (Or, you can directly run it from the shell without logging in first, but this is less common for development: `mysql -u your_username -p < inventory_system.sql`)
-
-4.  **Verification:**
-    * After execution, you should see a new database named `inventory_db` in your MySQL server.
-    * You can verify table creation by running `USE inventory_db; SHOW TABLES;` in your MySQL client.
-
-## Screenshot or link to your ERD
-
-Since I cannot directly generate an image here, you will need to create the ERD manually using a tool like:
-* **dbdiagram.io:** Online, easy to use, and can generate ERDs from SQL.
-* **Lucidchart / Draw.io:** General diagramming tools.
-* **MySQL Workbench:** Has a built-in ERD designer (Database -> Reverse Engineer or Model).
-
-**Example Text for ERD Link:**
-[Link to ERD Diagram (e.g., dbdiagram.io public link or an image hosted on GitHub Pages/Imgur)](https://www.dbdiagram.io/d/Your_ERD_Link_Here)
-
-**Conceptual ERD (for your reference in creating the actual diagram):**
-
-## The repo must include:
-* `inventory_system.sql` (the single SQL file as described above)
-* `README.md` (this file)
+-- RLS for market_prices table
+CREATE POLICY "Enable read access for all users" ON public.market_prices FOR SELECT USING (true);
+-- Add insert policy if you want users to submit prices, otherwise, keep this table admin-managed.
+-- CREATE POLICY "Enable insert for authenticated users only" ON public.market_prices FOR INSERT WITH CHECK (true);
