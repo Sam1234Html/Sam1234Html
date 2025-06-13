@@ -1,118 +1,223 @@
-# -*- coding: utf-8 -*-
-"""
-AI Future Directions Assignment - Part 2, Task 1: Edge AI Prototype
-Tools: TensorFlow Lite
-Goal: Train lightweight image classification model, convert to TFLite, test (conceptually),
-      and explain Edge AI benefits.
-"""
+// queries.js
 
-import tensorflow as tf
-from tensorflow.keras import layers, models
-import numpy as np
-import matplotlib.pyplot as plt
+// This file contains MongoDB queries to fulfill the "MongoDB Fundamentals Assignment" tasks.
+// It is designed to be run using `mongosh` (MongoDB Shell) connected to your MongoDB instance.
 
-print("--- Task 1: Edge AI Prototype (Fashion MNIST Example) ---")
+// --- IMPORTANT SETUP INSTRUCTIONS ---
+// 1. Ensure you have MongoDB installed locally OR a MongoDB Atlas account set up.
+// 2. Make sure your MongoDB server (mongod) is running if you're using a local installation.
+// 3. Run the `insert_books.js` script FIRST to populate your database with sample data.
+//    - For local MongoDB: `mongosh --file insert_books.js` (from your terminal in the assignment directory)
+//    - For MongoDB Atlas: Connect to your cluster using `mongosh` and then `load('insert_books.js');`
+//      or manually paste the content of insert_books.js into the shell.
+// 4. This script assumes the database is named 'libraryDB' and the collection is named 'books'.
+//    If your insert_books.js uses different names, please adjust accordingly.
 
-# --- 1. Load and Preprocess Dataset (Fashion MNIST) ---
-# This dataset is suitable for demonstrating a lightweight image classification task.
-(train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.fashion_mnist.load_data()
+// --- Select the Database ---
+// This command ensures you are operating within the 'libraryDB' database.
+use libraryDB;
+print("--- Using database: libraryDB ---");
 
-# Reshape and normalize images
-train_images = train_images.reshape((60000, 28, 28, 1)).astype('float32') / 255.0
-test_images = test_images.reshape((10000, 28, 28, 1)).astype('float32') / 255.0
+// --- Task 1: Basic CRUD Operations ---
+print("\n--- Task 1: Basic CRUD Operations ---");
 
-# Class names for Fashion MNIST
-class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
-               'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
+// 1.1 Insert a New Document
+// Inserts a new book document into the 'books' collection.
+// This demonstrates adding a single new record.
+db.books.insertOne({
+  title: "The Silent Patient",
+  author: "Alex Michaelides",
+  genre: "Thriller",
+  publicationYear: 2019,
+  pages: 336,
+  price: 16.50,
+  isAvailable: true,
+  ratings: [4, 5, 4, 4, 5],
+  publisher: "Celadon Books"
+});
+print("1.1: Inserted 'The Silent Patient'.");
 
-print("\nFashion MNIST data loaded and preprocessed.")
-print(f"Train images shape: {train_images.shape}")
-print(f"Test images shape: {test_images.shape}")
+// 1.2 Find All Documents
+// Retrieves and displays all documents currently in the 'books' collection.
+// This is useful for seeing the entire dataset.
+print("\n1.2: All documents in the 'books' collection:");
+db.books.find({});
 
-# --- 2. Train a Lightweight Image Classification Model ---
-# We design a simple CNN architecture to keep it lightweight, suitable for edge devices.
-model = models.Sequential([
-    layers.Conv2D(16, (3, 3), activation='relu', input_shape=(28, 28, 1)), # Fewer filters than standard
-    layers.MaxPooling2D((2, 2)),
-    layers.Conv2D(32, (3, 3), activation='relu'), # Still relatively small number of filters
-    layers.MaxPooling2D((2, 2)),
-    layers.Flatten(),
-    layers.Dense(64, activation='relu'), # Smaller dense layer
-    layers.Dense(10, activation='softmax') # 10 classes for Fashion MNIST
-])
+// 1.3 Find Documents with a Specific Filter
+// Finds and displays all books whose genre is 'Science Fiction'.
+// This demonstrates a simple equality query.
+print("\n1.3: Books with 'Science Fiction' genre:");
+db.books.find({ genre: "Science Fiction" });
 
-model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
+// 1.4 Update a Single Document
+// Updates the 'price' and 'isAvailable' fields for the book titled "Dune".
+// The $set operator is used to modify specific fields without replacing the entire document.
+db.books.updateOne(
+  { title: "Dune" },
+  { $set: { price: 18.99, isAvailable: false } }
+);
+print("\n1.4: Updated 'Dune' (price and availability).");
 
-print("\nLightweight CNN model built and compiled:")
-model.summary()
+// 1.5 Update Multiple Documents
+// Increases the 'price' of all books published before the year 2000 by 5%.
+// The $lt (less than) operator is used for the filter, and $mul (multiply) for the update.
+db.books.updateMany(
+  { publicationYear: { $lt: 2000 } },
+  { $mul: { price: 1.05 } }
+);
+print("\n1.5: Increased price of books published before 2000 by 5%.");
 
-# Train the model
-print("\nTraining the model (this might take a moment)...")
-history = model.fit(train_images, train_labels, epochs=5, # Reduced epochs for faster demo
-                    validation_data=(test_images, test_labels), verbose=1)
+// 1.6 Delete a Single Document
+// Deletes the book titled "The Midnight Library" (if it was inserted by a previous run or exists).
+// This demonstrates removing a specific document based on a criterion.
+db.books.deleteOne({ title: "The Midnight Library" });
+print("\n1.6: Deleted 'The Midnight Library'.");
 
-print("\nModel training complete.")
-test_loss, test_acc = model.evaluate(test_images, test_labels, verbose=0)
-print(f"Trained Model Test Accuracy: {test_acc:.4f}")
-
-# --- 3. Convert the model to TensorFlow Lite (.tflite) ---
-print("\nConverting the model to TensorFlow Lite format...")
-converter = tf.lite.TFLiteConverter.from_keras_model(model)
-tflite_model = converter.convert()
-
-# Save the TFLite model to a file
-tflite_model_path = 'fashion_mnist_model.tflite'
-with open(tflite_model_path, 'wb') as f:
-    f.write(tflite_model)
-
-print(f"Model successfully converted and saved as '{tflite_model_path}'")
-
-# --- 4. Test the TensorFlow Lite model on a sample dataset (Conceptual/Verification) ---
-print("\n--- Testing the TensorFlow Lite model (Conceptual Verification) ---")
-# This section demonstrates how you would load and test the TFLite model.
-# In a real Edge AI scenario (e.g., on a Raspberry Pi), you'd load this
-# .tflite file using a TensorFlow Lite interpreter and feed it live sensor data.
-
-# Load the TFLite model and allocate tensors.
-interpreter = tf.lite.Interpreter(model_path=tflite_model_path)
-interpreter.allocate_tensors()
-
-# Get input and output tensors.
-input_details = interpreter.get_input_details()
-output_details = interpreter.get_output_details()
-
-# Test the TFLite model on a few sample test images
-print(f"\nTesting {len(test_images)} images with TFLite interpreter...")
-tflite_predictions = []
-tflite_accurate_predictions = 0
-
-for i in range(len(test_images)):
-    input_data = test_images[i:i+1] # Get one image
-    interpreter.set_tensor(input_details[0]['index'], input_data)
-    interpreter.invoke()
-    output_data = interpreter.get_tensor(output_details[0]['index'])
-    predicted_class = np.argmax(output_data)
-    tflite_predictions.append(predicted_class)
-
-    if predicted_class == test_labels[i]:
-        tflite_accurate_predictions += 1
-
-tflite_accuracy = tflite_accurate_predictions / len(test_images)
-print(f"TensorFlow Lite Model Test Accuracy: {tflite_accuracy:.4f}")
-print("--- TFLite Model Test Complete ---")
+// 1.7 Delete Multiple Documents
+// Deletes all books published by 'Penguin Books'.
+// This demonstrates removing multiple documents matching a filter.
+db.books.deleteMany({ publisher: "Penguin Books" });
+print("\n1.7: Deleted all books published by 'Penguin Books'.");
 
 
-# --- 5. Explanation of Edge AI Benefits for Real-time Applications ---
-print("\n--- Benefits of Edge AI for Real-time Applications ---")
-print("Edge AI offers significant advantages for real-time applications by processing data locally, close to the source:")
-print("1.  **Reduced Latency:** Eliminates the round trip to the cloud. Decisions are made almost instantly on the device, crucial for applications like autonomous driving, robotics, or real-time quality control.")
-print("2.  **Enhanced Privacy/Security:** Sensitive data (e.g., images, audio) is processed locally and often never leaves the device. Only insights or anonymized data might be sent to the cloud, reducing privacy risks and vulnerabilities to data breaches.")
-print("3.  **Offline Capability:** Models can operate even without continuous internet connectivity, essential for remote locations or intermittent network environments.")
-print("4.  **Reduced Bandwidth Usage:** Only processed results or triggers are sent to the cloud, significantly lowering bandwidth consumption and associated costs.")
-print("5.  **Lower Cloud Costs:** Less reliance on cloud computing for inference reduces operational expenses for cloud infrastructure.")
-print("This makes Edge AI ideal for scenarios requiring immediate action, data sovereignty, or operation in resource-constrained environments.")
+// --- Task 2: Advanced Queries with Filtering, Projection, and Sorting ---
+print("\n--- Task 2: Advanced Queries ---");
 
-print("\n--- Task 1 Complete ---")
+// 2.1 Filtering with Logical Operators ($and, $or)
+// Find books that are either 'Mystery' or 'Thriller' genre AND published after 2015.
+print("\n2.1: Mystery/Thriller books published after 2015:");
+db.books.find({
+  $and: [
+    { $or: [{ genre: "Mystery" }, { genre: "Thriller" }] },
+    { publicationYear: { $gt: 2015 } }
+  ]
+});
 
+// 2.2 Filtering with Array Operators ($in, $size)
+// Find books that have exactly 5 ratings (assuming 'ratings' is an array) AND
+// are in 'Fiction' or 'Fantasy' genre.
+print("\n2.2: Fiction/Fantasy books with exactly 5 ratings:");
+db.books.find({
+  ratings: { $size: 5 },
+  genre: { $in: ["Fiction", "Fantasy"] }
+});
+
+// 2.3 Projection - Including specific fields, excluding _id
+// Retrieve only the 'title', 'author', and 'pages' of all books.
+// The '_id: 0' explicitly excludes the default '_id' field from the output.
+print("\n2.3: Titles, Authors, and Pages of all books (projection):");
+db.books.find({}, { title: 1, author: 1, pages: 1, _id: 0 });
+
+// 2.4 Sorting Documents
+// Find all books, sorted by 'author' in ascending order (A-Z), then by 'title' in ascending order.
+print("\n2.4: All books sorted by Author (A-Z) and Title (A-Z):");
+db.books.find({}).sort({ author: 1, title: 1 });
+
+// 2.5 Limiting and Skipping Results
+// Find the 3 most expensive books, skipping the very most expensive one.
+print("\n2.5: Top 3 most expensive books (excluding the very top one):");
+db.books.find({})
+  .sort({ price: -1 }) // Sort by price descending
+  .skip(1)             // Skip the first (most expensive) document
+  .limit(3);           // Limit to the next 3 documents
+
+
+// --- Task 3: Aggregation Pipelines for Data Analysis ---
+print("\n--- Task 3: Aggregation Pipelines ---");
+
+// 3.1 Total Number of Books and Average Price by Author
+// Groups documents by author, then counts books and calculates the average price for each author.
+print("\n3.1: Total books and average price per author:");
+db.books.aggregate([
+  {
+    $group: {
+      _id: "$author",          // Group by the 'author' field
+      totalBooks: { $sum: 1 }, // Count the number of books for each author
+      avgPrice: { $avg: "$price" } // Calculate the average price for each author
+    }
+  },
+  {
+    $sort: { totalBooks: -1 } // Sort authors by the number of books they wrote, descending
+  }
+]);
+
+// 3.2 Books with Average Rating Above 4.0
+// First, calculates the average rating for each book, then filters for books with avgRating > 4.0.
+print("\n3.2: Books with an average rating above 4.0:");
+db.books.aggregate([
+  {
+    $addFields: { // Adds a new field 'avgRating' to each document
+      avgRating: { $avg: "$ratings" } // Calculates the average of the 'ratings' array
+    }
+  },
+  {
+    $match: { // Filters documents where 'avgRating' is greater than 4.0
+      avgRating: { $gt: 4.0 }
+    }
+  },
+  {
+    $project: { // Project only relevant fields for output
+      _id: 0,
+      title: 1,
+      author: 1,
+      avgRating: 1
+    }
+  },
+  {
+    $sort: { avgRating: -1 } // Sort by average rating descending
+  }
+]);
+
+// 3.3 Count Books by Decade of Publication
+// Groups books by the decade they were published in.
+print("\n3.3: Number of books published per decade:");
+db.books.aggregate([
+  {
+    $group: {
+      _id: {
+        $concat: [
+          { $toString: { $subtract: ["$publicationYear", { $mod: ["$publicationYear", 10] }] } },
+          "s"
+        ]
+      },
+      count: { $sum: 1 }
+    }
+  },
+  { $sort: { _id: 1 } } // Sort by decade ascending
+]);
+
+
+// --- Task 4: Indexing for Performance Optimization ---
+print("\n--- Task 4: Indexing for Performance Optimization ---");
+
+// 4.1 Create a Single-Field Index
+// Creates an ascending index on the 'genre' field.
+// This will speed up queries that filter or sort by 'genre'.
+db.books.createIndex({ genre: 1 });
+print("\n4.1: Created single-field index on 'genre'.");
+
+// 4.2 Create a Compound Index
+// Creates a compound index on 'author' (ascending) and 'title' (ascending).
+// This index is useful for queries that filter by author and/or title, or sort by author then title.
+db.books.createIndex({ author: 1, title: 1 });
+print("\n4.2: Created compound index on 'author' and 'title'.");
+
+// 4.3 Create a Unique Index (Example)
+// Creates a unique index on 'title' and 'author' to ensure no two books have the same title by the same author.
+// This is useful for preventing duplicate entries.
+// If duplicates already exist, this command will fail.
+try {
+  db.books.createIndex({ title: 1, author: 1 }, { unique: true });
+  print("\n4.3: Created unique compound index on 'title' and 'author'.");
+} catch (e) {
+  print("\n4.3: Could not create unique index (might have duplicates or already exists): " + e.message);
+}
+
+
+// 4.4 Verify Indexes (for your own check, not part of automated submission unless specified)
+// Lists all indexes defined on the 'books' collection.
+print("\n4.4: Current indexes on the 'books' collection:");
+db.books.getIndexes();
+
+print("\n--- All Assignment Queries Executed ---");
+print("Remember to include a screenshot of your database and update your README.md.");
