@@ -199,10 +199,10 @@ void complexExample() {
     // Categorize numbers using a switch statement (can also be done with if-else if)
     String category;
     switch (number) {
-      case >= 1 and <= 10: // Using Dart 3's new patterns for ranges
+      case >= 1 && <= 10: // Using Dart 3's new patterns for ranges
         category = 'Small';
         break;
-      case >= 11 and <= 100:
+      case >= 11 && <= 100:
         category = 'Medium';
         break;
       case > 100: // For numbers greater than 100
