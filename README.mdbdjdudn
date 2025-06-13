@@ -1,99 +1,118 @@
 # -*- coding: utf-8 -*-
 """
-AI Tools Assignment - Bonus Task: Deploy Your Model
-Tool: Streamlit
-Goal: Create a web interface for the MNIST classifier.
+AI Future Directions Assignment - Part 2, Task 1: Edge AI Prototype
+Tools: TensorFlow Lite
+Goal: Train lightweight image classification model, convert to TFLite, test (conceptually),
+      and explain Edge AI benefits.
 """
 
-import streamlit as st
 import tensorflow as tf
+from tensorflow.keras import layers, models
 import numpy as np
-from PIL import Image # Pillow library for image processing
+import matplotlib.pyplot as plt
 
-print("--- Bonus Task: Deploy Your MNIST Classifier with Streamlit ---")
+print("--- Task 1: Edge AI Prototype (Fashion MNIST Example) ---")
 
-# --- 1. Load the pre-trained MNIST CNN model ---
-# Ensure you have saved your model from Part 2, Task 2 (e.g., as 'mnist_cnn_model.h5')
-# If you saved it in the newer SavedModel format, just use the directory name.
-try:
-    # Attempt to load the model. Replace 'mnist_cnn_model.h5' with your saved model's path/name
-    model = tf.keras.models.load_model('mnist_cnn_model.h5')
-    st.success("MNIST CNN Model loaded successfully!")
-    print("Model loaded.")
-except Exception as e:
-    st.error(f"Error loading model: {e}")
-    st.info("Please ensure 'mnist_cnn_model.h5' is in the same directory and saved correctly after Task 2.")
-    st.stop() # Stop the app if model loading fails
+# --- 1. Load and Preprocess Dataset (Fashion MNIST) ---
+# This dataset is suitable for demonstrating a lightweight image classification task.
+(train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.fashion_mnist.load_data()
 
-# --- 2. Streamlit UI Setup ---
-st.set_page_config(
-    page_title="MNIST Digit Classifier",
-    page_icon="✍️",
-    layout="centered",
-    initial_sidebar_state="expanded"
-)
+# Reshape and normalize images
+train_images = train_images.reshape((60000, 28, 28, 1)).astype('float32') / 255.0
+test_images = test_images.reshape((10000, 28, 28, 1)).astype('float32') / 255.0
 
-st.title("✍️ MNIST Handwritten Digit Classifier")
-st.markdown("Upload an image of a handwritten digit (0-9) and let the AI predict it!")
+# Class names for Fashion MNIST
+class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
+               'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
 
-st.sidebar.header("About This App")
-st.sidebar.info(
-    "This app demonstrates the deployment of a Convolutional Neural Network (CNN) "
-    "trained on the MNIST dataset using TensorFlow. "
-    "Upload a square image (preferably 28x28 grayscale) containing a single digit."
-)
-st.sidebar.markdown("[GitHub Repo (coming soon!)](#)") # Placeholder for GitHub link
+print("\nFashion MNIST data loaded and preprocessed.")
+print(f"Train images shape: {train_images.shape}")
+print(f"Test images shape: {test_images.shape}")
 
-# --- 3. Image Upload Section ---
-uploaded_file = st.file_uploader("Choose an image...", type=["png", "jpg", "jpeg"])
+# --- 2. Train a Lightweight Image Classification Model ---
+# We design a simple CNN architecture to keep it lightweight, suitable for edge devices.
+model = models.Sequential([
+    layers.Conv2D(16, (3, 3), activation='relu', input_shape=(28, 28, 1)), # Fewer filters than standard
+    layers.MaxPooling2D((2, 2)),
+    layers.Conv2D(32, (3, 3), activation='relu'), # Still relatively small number of filters
+    layers.MaxPooling2D((2, 2)),
+    layers.Flatten(),
+    layers.Dense(64, activation='relu'), # Smaller dense layer
+    layers.Dense(10, activation='softmax') # 10 classes for Fashion MNIST
+])
 
-if uploaded_file is not None:
-    # Display the uploaded image
-    image = Image.open(uploaded_file).convert("L") # Convert to grayscale
-    st.image(image, caption="Uploaded Image", use_column_width=True, width=150)
-    st.write("")
-    st.write("Classifying...")
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
 
-    # --- 4. Preprocess the image for the model ---
-    try:
-        # Resize image to 28x28 pixels
-        image = image.resize((28, 28))
-        # Convert image to numpy array
-        img_array = np.array(image)
-        # Normalize pixel values to 0-1 range
-        img_array = img_array / 255.0
-        # Reshape to (1, 28, 28, 1) to match model input shape (batch_size, height, width, channels)
-        img_array = img_array.reshape(1, 28, 28, 1)
+print("\nLightweight CNN model built and compiled:")
+model.summary()
 
-        st.success("Image preprocessed successfully!")
-        # Optional: show preprocessed image for debugging
-        # st.image(img_array.reshape(28,28), caption="Preprocessed (28x28 grayscale)", width=100)
+# Train the model
+print("\nTraining the model (this might take a moment)...")
+history = model.fit(train_images, train_labels, epochs=5, # Reduced epochs for faster demo
+                    validation_data=(test_images, test_labels), verbose=1)
 
-        # --- 5. Make a prediction ---
-        predictions = model.predict(img_array)
-        predicted_class = np.argmax(predictions)
-        confidence = np.max(predictions) * 100 # Convert to percentage
+print("\nModel training complete.")
+test_loss, test_acc = model.evaluate(test_images, test_labels, verbose=0)
+print(f"Trained Model Test Accuracy: {test_acc:.4f}")
 
-        st.subheader("Prediction:")
-        st.write(f"The model predicts this is a: **{predicted_class}**")
-        st.write(f"Confidence: **{confidence:.2f}%**")
+# --- 3. Convert the model to TensorFlow Lite (.tflite) ---
+print("\nConverting the model to TensorFlow Lite format...")
+converter = tf.lite.TFLiteConverter.from_keras_model(model)
+tflite_model = converter.convert()
 
-        # Display probabilities for all classes
-        st.markdown("---")
-        st.subheader("All Class Probabilities:")
-        prob_df = pd.DataFrame({
-            'Digit': range(10),
-            'Probability': [f"{p*100:.2f}%" for p in predictions[0]]
-        })
-        # Sort by probability for better readability
-        prob_df = prob_df.sort_values(by='Probability', ascending=False)
-        st.dataframe(prob_df, hide_index=True)
+# Save the TFLite model to a file
+tflite_model_path = 'fashion_mnist_model.tflite'
+with open(tflite_model_path, 'wb') as f:
+    f.write(tflite_model)
+
+print(f"Model successfully converted and saved as '{tflite_model_path}'")
+
+# --- 4. Test the TensorFlow Lite model on a sample dataset (Conceptual/Verification) ---
+print("\n--- Testing the TensorFlow Lite model (Conceptual Verification) ---")
+# This section demonstrates how you would load and test the TFLite model.
+# In a real Edge AI scenario (e.g., on a Raspberry Pi), you'd load this
+# .tflite file using a TensorFlow Lite interpreter and feed it live sensor data.
+
+# Load the TFLite model and allocate tensors.
+interpreter = tf.lite.Interpreter(model_path=tflite_model_path)
+interpreter.allocate_tensors()
+
+# Get input and output tensors.
+input_details = interpreter.get_input_details()
+output_details = interpreter.get_output_details()
+
+# Test the TFLite model on a few sample test images
+print(f"\nTesting {len(test_images)} images with TFLite interpreter...")
+tflite_predictions = []
+tflite_accurate_predictions = 0
+
+for i in range(len(test_images)):
+    input_data = test_images[i:i+1] # Get one image
+    interpreter.set_tensor(input_details[0]['index'], input_data)
+    interpreter.invoke()
+    output_data = interpreter.get_tensor(output_details[0]['index'])
+    predicted_class = np.argmax(output_data)
+    tflite_predictions.append(predicted_class)
+
+    if predicted_class == test_labels[i]:
+        tflite_accurate_predictions += 1
+
+tflite_accuracy = tflite_accurate_predictions / len(test_images)
+print(f"TensorFlow Lite Model Test Accuracy: {tflite_accuracy:.4f}")
+print("--- TFLite Model Test Complete ---")
 
 
-    except Exception as e:
-        st.error(f"Error during image processing or prediction: {e}")
-        st.info("Please ensure the uploaded image is suitable for a digit classifier.")
+# --- 5. Explanation of Edge AI Benefits for Real-time Applications ---
+print("\n--- Benefits of Edge AI for Real-time Applications ---")
+print("Edge AI offers significant advantages for real-time applications by processing data locally, close to the source:")
+print("1.  **Reduced Latency:** Eliminates the round trip to the cloud. Decisions are made almost instantly on the device, crucial for applications like autonomous driving, robotics, or real-time quality control.")
+print("2.  **Enhanced Privacy/Security:** Sensitive data (e.g., images, audio) is processed locally and often never leaves the device. Only insights or anonymized data might be sent to the cloud, reducing privacy risks and vulnerabilities to data breaches.")
+print("3.  **Offline Capability:** Models can operate even without continuous internet connectivity, essential for remote locations or intermittent network environments.")
+print("4.  **Reduced Bandwidth Usage:** Only processed results or triggers are sent to the cloud, significantly lowering bandwidth consumption and associated costs.")
+print("5.  **Lower Cloud Costs:** Less reliance on cloud computing for inference reduces operational expenses for cloud infrastructure.")
+print("This makes Edge AI ideal for scenarios requiring immediate action, data sovereignty, or operation in resource-constrained environments.")
 
-st.markdown("---")
-st.caption("Developed as part of the AI Tools Assignment: Mastering the AI Toolkit.")
+print("\n--- Task 1 Complete ---")
 
