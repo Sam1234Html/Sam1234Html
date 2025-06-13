@@ -1,529 +1,90 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // For TextInputFormatter
+# -*- coding: utf-8 -*-
+"""
+AI Tools Assignment - Part 2, Task 1: Classical ML with Scikit-learn
+Dataset: Iris Species Dataset
+Goal: Preprocess, train Decision Tree, evaluate.
+"""
 
-void main() {
-  runApp(const MyApp());
-}
+# Import necessary libraries
+import pandas as pd
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score, classification_report
+import numpy as np
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+print("--- Task 1: Classical ML with Scikit-learn ---")
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Money Transfer App',
-      theme: ThemeData(
-        // Define the primary color palette for consistency
-        primarySwatch: Colors.deepPurple,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        // AppBar theme for a consistent look across screens
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.deepPurple,
-          foregroundColor: Colors.white,
-          centerTitle: true,
-        ),
-        // Input field decoration theme for consistent text fields
-        inputDecorationTheme: InputDecorationTheme(
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
-            borderSide: const BorderSide(color: Colors.deepPurpleAccent),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
-            borderSide: const BorderSide(color: Colors.deepPurple, width: 2.0),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
-            borderSide: BorderSide(color: Colors.deepPurple.shade200, width: 1.0),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
-            borderSide: const BorderSide(color: Colors.red, width: 1.5),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
-            borderSide: const BorderSide(color: Colors.red, width: 2.0),
-          ),
-          filled: true,
-          fillColor: Colors.deepPurple.shade50,
-          labelStyle: TextStyle(color: Colors.deepPurple.shade700),
-          hintStyle: TextStyle(color: Colors.deepPurple.shade400),
-        ),
-        // Elevated Button theme for consistent button styles
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.deepPurple,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.0),
-            ),
-          ),
-        ),
-        // Outlined Button theme for consistent secondary button styles
-        outlinedButtonTheme: OutlinedButtonThemeData(
-          style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.deepPurple,
-            side: const BorderSide(color: Colors.deepPurple, width: 2),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.0),
-            ),
-          ),
-        ),
-      ),
-      initialRoute: '/', // Set the initial route to the Home Screen
-      // Define custom page transitions for specific routes
-      onGenerateRoute: (settings) {
-        if (settings.name == '/login' || settings.name == '/send_money') {
-          return PageRouteBuilder(
-            settings: RouteSettings(name: settings.name), // Pass route name for Navigator
-            pageBuilder: (context, animation, secondaryAnimation) {
-              if (settings.name == '/login') {
-                return const LoginScreen();
-              } else if (settings.name == '/send_money') {
-                return const SendMoneyPage();
-              }
-              return const SizedBox.shrink(); // Fallback
-            },
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              const begin = Offset(1.0, 0.0); // Start from the right
-              const end = Offset.zero; // End at the center
-              const curve = Curves.easeOutCubic; // A smooth easing curve
+# 1. Load the Iris Species Dataset
+# The Iris dataset is well-known and often used for classification examples.
+# It's clean and doesn't typically require extensive missing value handling.
+iris = load_iris()
+X = iris.data
+y = iris.target
+feature_names = iris.feature_names
+target_names = iris.target_names
 
-              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+print("\nDataset loaded successfully.")
+print(f"Features (X) shape: {X.shape}")
+print(f"Target (y) shape: {y.shape}")
+print(f"Feature names: {feature_names}")
+print(f"Target names: {target_names}")
 
-              return SlideTransition(
-                position: animation.drive(tween),
-                child: child,
-              );
-            },
-            transitionDuration: const Duration(milliseconds: 600), // Smooth transition duration
-          );
-        }
-        return null; // Let MaterialApp handle other routes or throw an error
-      },
-    );
-  }
-}
+# Convert to DataFrame for easier inspection (optional, but good practice)
+df = pd.DataFrame(X, columns=feature_names)
+df['species'] = y
+print("\nFirst 5 rows of the dataset:")
+print(df.head())
 
-/// A custom reusable button widget with consistent styling.
-/// Supports text, an optional icon, and custom background/text colors.
-class CustomAppButton extends StatelessWidget {
-  final String text;
-  final VoidCallback onPressed;
-  final Color? backgroundColor;
-  final Color? textColor;
-  final IconData? icon;
+# 2. Preprocess the data (handle missing values, encode labels)
+# The Iris dataset is clean; no missing values to handle here.
+# Target labels (y) are already encoded as integers (0, 1, 2), which is suitable for Scikit-learn.
+print("\nData preprocessing step:")
+if np.isnan(X).sum() == 0:
+    print("No missing values found in the dataset.")
+else:
+    print("Missing values found and handled (e.g., imputation or removal).") # Placeholder if dataset needed handling
 
-  const CustomAppButton({
-    super.key,
-    required this.text,
-    required this.onPressed,
-    this.backgroundColor,
-    this.textColor,
-    this.icon,
-  });
+# 3. Split the data into training and testing sets
+# A common split is 80% for training and 20% for testing.
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+# stratify=y ensures that the proportion of target labels is the same in train and test sets.
 
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        // Use provided colors or fallback to theme colors
-        backgroundColor: backgroundColor ?? Theme.of(context).elevatedButtonTheme.style?.backgroundColor?.resolve({MaterialState.pressed}),
-        foregroundColor: textColor ?? Theme.of(context).elevatedButtonTheme.style?.foregroundColor?.resolve({MaterialState.pressed}),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-        child: Row(
-          mainAxisSize: MainAxisSize.min, // Make the row as small as possible
-          children: [
-            if (icon != null) ...[
-              Icon(icon),
-              const SizedBox(width: 8), // Space between icon and text
-            ],
-            Text(text),
-          ],
-        ),
-      ),
-    );
-  }
-}
+print(f"\nData split into training and testing sets:")
+print(f"X_train shape: {X_train.shape}")
+print(f"X_test shape: {X_test.shape}")
+print(f"y_train shape: {y_train.shape}")
+print(f"y_test shape: {y_test.shape}")
 
-/// The initial screen of the application, featuring basic elements and navigation.
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Welcome Home'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, // Center content vertically
-          children: <Widget>[
-            // App Title Container
-            Container(
-              padding: const EdgeInsets.all(20.0),
-              margin: const EdgeInsets.symmetric(horizontal: 20.0),
-              decoration: BoxDecoration(
-                color: Colors.deepPurple.shade100,
-                borderRadius: BorderRadius.circular(15.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 2,
-                    blurRadius: 7,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: const Text(
-                'Money Transfer App',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.deepPurple,
-                ),
-              ),
-            ),
-            const SizedBox(height: 40), // Spacing below the title container
+# 4. Train a Decision Tree Classifier
+print("\nTraining Decision Tree Classifier...")
+decision_tree_model = DecisionTreeClassifier(random_state=42)
+decision_tree_model.fit(X_train, y_train)
+print("Decision Tree Classifier trained.")
 
-            // Button to navigate to Login Screen
-            CustomAppButton(
-              text: 'Go to Login',
-              icon: Icons.login,
-              onPressed: () {
-                Navigator.pushNamed(context, '/login');
-              },
-            ),
-            const SizedBox(height: 20), // Spacing between buttons
+# 5. Make predictions on the test set
+y_pred = decision_tree_model.predict(X_test)
 
-            // Button to navigate to Send Money Screen
-            CustomAppButton(
-              text: 'Send Money Now',
-              icon: Icons.send,
-              backgroundColor: Colors.teal, // Custom color for this button
-              textColor: Colors.white,
-              onPressed: () {
-                Navigator.pushNamed(context, '/send_money');
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+# 6. Evaluate the model using accuracy, precision, and recall
+print("\nModel Evaluation:")
 
-/// The Login screen with input fields and form validation.
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+# Accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy:.4f}")
 
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
+# Precision, Recall, and F1-Score for each class, and overall averages.
+# 'weighted' average is suitable for imbalanced datasets, but 'macro' or 'micro' could also be used.
+# For multi-class classification, `precision_score` and `recall_score` need `average` parameter.
+precision = precision_score(y_test, y_pred, average='weighted')
+recall = recall_score(y_test, y_pred, average='weighted')
 
-class _LoginScreenState extends State<LoginScreen> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>(); // Key for form validation
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+print(f"Precision (weighted): {precision:.4f}")
+print(f"Recall (weighted): {recall:.4f}")
 
-  @override
-  void dispose() {
-    _usernameController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
+# Detailed classification report
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred, target_names=target_names))
 
-  void _onLoginPressed() {
-    // Validate all fields in the form
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save(); // Save form fields (if onSaved is used)
-      print('Login button clicked!');
-      print('Username: ${_usernameController.text}');
-      print('Password: ${_passwordController.text}');
+print("\n--- Task 1 Complete ---")
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login successful! Navigating...')),
-      );
-      // Navigate to Send Money page after successful login simulation
-      Navigator.pushNamed(context, '/send_money');
-    }
-  }
-
-  void _onRegisterPressed() {
-    print('Register button clicked!');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Redirecting to registration... (Feature not implemented)')),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-      ),
-      body: Center(
-        child: SingleChildScrollView( // Allows content to scroll if keyboard appears
-          padding: const EdgeInsets.all(24.0), // Overall padding for the screen
-          child: Form(
-            key: _formKey, // Assign the GlobalKey to the Form
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center, // Center content vertically
-              crossAxisAlignment: CrossAxisAlignment.stretch, // Stretch children horizontally
-              children: <Widget>[
-                const Text(
-                  'Welcome Back!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.deepPurple,
-                  ),
-                ),
-                const SizedBox(height: 50), // Spacing below the title
-
-                // TextField for Username with validation
-                TextFormField(
-                  controller: _usernameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Username', // Descriptive label
-                    hintText: 'Enter your username',
-                    prefixIcon: Icon(Icons.person),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your username'; // Error message
-                    }
-                    return null; // Return null if validation passes
-                  },
-                  // autovalidateMode: AutovalidateMode.onUserInteraction, // Validate as user types/interacts
-                ),
-                const SizedBox(height: 20), // Spacing between input fields
-
-                // TextField for Password with validation
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: true, // Hide password input
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    hintText: 'Enter your password',
-                    prefixIcon: Icon(Icons.lock),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
-                  // autovalidateMode: AutovalidateMode.onUserInteraction, // Validate as user types/interacts
-                ),
-                const SizedBox(height: 30), // Spacing below input fields
-
-                // Row for Login and Registration Buttons
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: CustomAppButton(
-                        text: 'Login',
-                        icon: Icons.login,
-                        onPressed: _onLoginPressed,
-                      ),
-                    ),
-                    const SizedBox(width: 20), // Spacing between buttons
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _onRegisterPressed,
-                        child: const Text('Register'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The Send Money page featuring interactive widgets, form validation, and animations.
-class SendMoneyPage extends StatefulWidget {
-  const SendMoneyPage({super.key});
-
-  @override
-  State<SendMoneyPage> createState() => _SendMoneyPageState();
-}
-
-class _SendMoneyPageState extends State<SendMoneyPage> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _recipientController = TextEditingController();
-  final TextEditingController _amountController = TextEditingController();
-  String? _selectedPaymentMethod = 'Bank Transfer'; // Default payment method
-  bool _isFavoriteTransaction = false;
-  bool _showSuccessMessage = false; // Controls visibility of the success message
-  double _successMessageOpacity = 0.0; // Controls opacity for fade animation
-  double _successMessageHeight = 0.0; // Controls height for size animation
-
-  final List<String> _paymentMethods = [
-    'Bank Transfer',
-    'Mobile Wallet',
-    'Credit Card',
-    'Cash Pickup',
-  ];
-
-  @override
-  void dispose() {
-    _recipientController.dispose();
-    _amountController.dispose();
-    super.dispose();
-  }
-
-  void _sendMoney() {
-    // Validate the form before proceeding
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      print('Sending Money Details:');
-      print('Recipient: ${_recipientController.text}');
-      print('Amount: \$${_amountController.text}');
-      print('Payment Method: $_selectedPaymentMethod');
-      print('Favorite: $_isFavoriteTransaction');
-
-      // Simulate a network call or transaction processing
-      setState(() {
-        _showSuccessMessage = true; // Show the success message container
-        _successMessageOpacity = 1.0; // Animate opacity to fully visible
-        _successMessageHeight = 100.0; // Animate height to make it visible
-      });
-
-      // Hide the success message and reset form after a delay
-      Future.delayed(const Duration(seconds: 3), () {
-        setState(() {
-          _successMessageOpacity = 0.0; // Fade out
-          _successMessageHeight = 0.0; // Shrink
-        });
-        // Reset form fields and state after animation completes
-        _formKey.currentState!.reset();
-        _recipientController.clear();
-        _amountController.clear();
-        _isFavoriteTransaction = false;
-        _selectedPaymentMethod = 'Bank Transfer'; // Reset dropdown
-        _showSuccessMessage = false; // Hide completely after fade
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Transaction initiated successfully!')),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Send Money'),
-      ),
-      body: SingleChildScrollView( // Allows scrolling if content overflows
-        padding: const EdgeInsets.all(24.0),
-        child: Form(
-          key: _formKey, // Assign the form key for validation
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch, // Stretch children horizontally
-            children: <Widget>[
-              const Text(
-                'New Transaction',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.deepPurple,
-                ),
-              ),
-              const SizedBox(height: 40), // Spacing below title
-
-              // TextField for Recipient Name
-              TextFormField(
-                controller: _recipientController,
-                decoration: const InputDecoration(
-                  labelText: 'Recipient Name',
-                  hintText: 'e.g., Jane Doe',
-                  prefixIcon: Icon(Icons.person_outline),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Recipient name cannot be empty';
-                  }
-                  return null;
-                },
-                // autovalidateMode: AutovalidateMode.onUserInteraction,
-              ),
-              const SizedBox(height: 20), // Spacing between fields
-
-              // TextField for Amount
-              TextFormField(
-                controller: _amountController,
-                decoration: const InputDecoration(
-                  labelText: 'Amount',
-                  hintText: 'e.g., 100.00',
-                  prefixIcon: Icon(Icons.attach_money),
-                ),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true), // Numeric keyboard
-                inputFormatters: [
-                  // Allows only numbers and up to two decimal places
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-                ],
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Amount cannot be empty';
-                  }
-                  final amount = double.tryParse(value);
-                  if (amount == null || amount <= 0) {
-                    return 'Amount must be a positive number';
-                  }
-                  return null;
-                },
-                // autovalidateMode: AutovalidateMode.onUserInteraction,
-              ),
-              const SizedBox(height: 20), // Spacing between fields
-
-              // DropdownButton for Payment Method
-              DropdownButtonFormField<String>(
-                value: _selectedPaymentMethod,
-                decoration: const InputDecoration(
-                  labelText: 'Payment Method',
-                  prefixIcon: Icon(Icons.credit_card),
-                ),
-                items: _paymentMethods.map((String method) {
-                  return DropdownMenuItem<String>(
-                    value: method,
-                    child: Text(method),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedPaymentMethod = newValue;
-                  });
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please select a payment method';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20), // Spacing between fields
-
-              // Switch for Favorite Transaction
-              SwitchListTil
