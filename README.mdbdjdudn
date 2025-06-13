@@ -1,197 +1,217 @@
-# Import necessary libraries
-import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-import matplotlib.pyplot as plt
-import seaborn as sns
+import 'dart:io'; // Required for stdin.readLineSync() if you want interactive input
 
-# --- 1. Choose Your SDG and Problem ---
-# SDG: SDG 13 - Climate Action
-# Specific Problem: Forecasting carbon emissions to support policy-making and emission reduction strategies.
+void main() {
+  print('--- DART WEEK ONE IMPLEMENTATION ---');
 
-# --- 2. Select an ML Approach ---
-# Approach: Supervised Learning (Regression)
-# We will predict a continuous numerical value (CO2 emissions) based on historical features.
+  // 1. Data Types Implementation:
+  print('\n--- 1. Data Types Implementation ---');
+  defineVariables();
+  typeConversionExamples();
+  convertAndDisplay('123');
+  convertAndDisplay('98.76');
+  convertAndDisplay('abc'); // Test with invalid input
 
-# --- 3. Dataset & Tools ---
-# Dataset: For demonstration purposes, we will create a synthetic dataset.
-# In a real-world scenario, you would use actual datasets like:
-# - World Bank Open Data (e.g., CO2 emissions, GDP per capita, population growth, energy use)
-# - UN SDG Database
-# - Kaggle datasets related to climate change or energy statistics.
+  // 2. Control Flow:
+  print('\n--- 2. Control Flow ---');
+  checkNumber(10);
+  checkNumber(-5);
+  checkNumber(0);
 
-# Tools: Python, Pandas (for data manipulation), Scikit-learn (for ML model), Matplotlib/Seaborn (for visualization).
+  checkVotingEligibility(20);
+  checkVotingEligibility(17);
 
-# --- Synthetic Data Generation ---
-# Let's assume we have data on 'Year', 'GDP_per_capita', 'Population_growth', 'Energy_consumption_per_capita',
-# and 'CO2_emissions_metric_tons_per_capita'.
-np.random.seed(42) # for reproducibility
+  printDayOfWeek(1);
+  printDayOfWeek(5);
+  printDayOfWeek(7);
+  printDayOfWeek(9); // Test invalid input
 
-years = np.arange(1990, 2024)
-num_samples = len(years)
+  print('\nFor Loop (1 to 10):');
+  forLoopExample();
 
-# Simulate features with some trends and noise
-gdp_per_capita = np.linspace(5000, 30000, num_samples) + np.random.normal(0, 2000, num_samples)
-population_growth = np.linspace(0.01, 0.005, num_samples) + np.random.normal(0, 0.001, num_samples)
-energy_consumption_per_capita = np.linspace(2000, 8000, num_samples) + np.random.normal(0, 500, num_samples)
+  print('\nWhile Loop (10 to 1):');
+  whileLoopExample();
 
-# Simulate CO2 emissions with a dependency on other features and a general upward trend
-co2_emissions = (
-    0.5 * gdp_per_capita / 1000  # GDP influence
-    + 500 * energy_consumption_per_capita / 1000 # Energy consumption influence
-    + 1000 * (years - 1990) / 30 # Time trend
-    + np.random.normal(0, 500, num_samples) # Noise
-)
-co2_emissions = np.maximum(0, co2_emissions) # Ensure no negative emissions
+  print('\nDo-While Loop (1 to 5):');
+  doWhileLoopExample();
 
-data = pd.DataFrame({
-    'Year': years,
-    'GDP_per_capita': gdp_per_capita,
-    'Population_growth': population_growth,
-    'Energy_consumption_per_capita': energy_consumption_per_capita,
-    'CO2_emissions_metric_tons_per_capita': co2_emissions
-})
+  // 3. Combining Data Types and Control Flow:
+  print('\n--- 3. Combining Data Types and Control Flow ---');
+  complexExample();
+}
 
-print("--- Simulated Dataset Head ---")
-print(data.head())
-print("\n--- Dataset Info ---")
-print(data.info())
-print("\n--- Dataset Description ---")
-print(data.describe())
+// --- Data Types Implementation ---
 
-# --- 4. Build Your Model ---
+void defineVariables() {
+  print('\n  Defining Variables:');
+  int myInt = 42;
+  double myDouble = 3.14159;
+  String myString = 'Hello, Dart!';
+  bool myBool = true;
+  List<int> myList = [1, 2, 3, 4, 5];
 
-# Preprocess Data:
-# For this simple dataset, cleaning involves checking for NaNs (none in synthetic data).
-# Normalization/Scaling might be beneficial for more complex models, but for Linear Regression, it's less critical.
-# We will use 'Year', 'GDP_per_capita', 'Population_growth', 'Energy_consumption_per_capita' as features (X)
-# and 'CO2_emissions_metric_tons_per_capita' as the target (y).
+  print('    int: $myInt');
+  print('    double: $myDouble');
+  print('    String: "$myString"');
+  print('    bool: $myBool');
+  print('    List: $myList');
+}
 
-X = data[['Year', 'GDP_per_capita', 'Population_growth', 'Energy_consumption_per_capita']]
-y = data['CO2_emissions_metric_tons_per_capita']
+void typeConversionExamples() {
+  print('\n  Type Conversion Examples:');
 
-# Split data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+  // Convert String to int and double
+  String strNumInt = '123';
+  String strNumDouble = '45.67';
 
-print(f"\nTraining set shape: {X_train.shape}, {y_train.shape}")
-print(f"Testing set shape: {X_test.shape}, {y_test.shape}")
+  try {
+    int parsedInt = int.parse(strNumInt);
+    double parsedDouble = double.parse(strNumDouble);
+    print('    String "$strNumInt" to int: $parsedInt');
+    print('    String "$strNumDouble" to double: $parsedDouble');
+  } catch (e) {
+    print('    Error converting string to number: $e');
+  }
 
-# Train Model:
-model = LinearRegression()
-model.fit(X_train, y_train)
+  // Convert int to String and double
+  int numInt = 100;
+  String intToStr = numInt.toString();
+  double intToDouble = numInt.toDouble(); // Or simply (numInt * 1.0)
+  print('    int $numInt to String: "$intToStr"');
+  print('    int $numInt to double: $intToDouble');
+}
 
-print("\n--- Model Training Complete ---")
-print(f"Model Coefficients: {model.coef_}")
-print(f"Model Intercept: {model.intercept_}")
+void convertAndDisplay(String numberString) {
+  print('\n  Function: convertAndDisplay("$numberString")');
+  try {
+    int? intValue = int.tryParse(numberString); // Use tryParse for safer conversion
+    double? doubleValue = double.tryParse(numberString);
 
-# Evaluate:
-y_pred = model.predict(X_test)
+    if (intValue != null) {
+      print('    Converted to int: $intValue');
+    } else {
+      print('    Could not convert "$numberString" to int.');
+    }
 
-mae = mean_absolute_error(y_test, y_pred)
-mse = mean_squared_error(y_test, y_pred)
-rmse = np.sqrt(mse)
-r2 = r2_score(y_test, y_pred)
+    if (doubleValue != null) {
+      print('    Converted to double: $doubleValue');
+    } else {
+      print('    Could not convert "$numberString" to double.');
+    }
+  } catch (e) {
+    print('    An unexpected error occurred during conversion: $e');
+  }
+}
 
-print(f"\n--- Model Evaluation Metrics ---")
-print(f"Mean Absolute Error (MAE): {mae:.2f}")
-print(f"Mean Squared Error (MSE): {mse:.2f}")
-print(f"Root Mean Squared Error (RMSE): {rmse:.2f}")
-print(f"R-squared (R2): {r2:.2f}")
+// --- Control Flow ---
 
-# Visualize Results
-plt.figure(figsize=(12, 6))
-plt.scatter(y_test, y_pred, alpha=0.7)
-plt.plot([y.min(), y.max()], [y.min(), y.max()], 'r--', lw=2, label='Perfect Prediction')
-plt.xlabel("Actual CO2 Emissions")
-plt.ylabel("Predicted CO2 Emissions")
-plt.title("Actual vs. Predicted CO2 Emissions")
-plt.legend()
-plt.grid(True)
-plt.show()
+void checkNumber(int number) {
+  print('\n  Checking number: $number');
+  if (number > 0) {
+    print('    The number is positive.');
+  } else if (number < 0) {
+    print('    The number is negative.');
+  } else {
+    print('    The number is zero.');
+  }
+}
 
-# Residuals Plot (to check for patterns in errors)
-residuals = y_test - y_pred
-plt.figure(figsize=(12, 6))
-sns.histplot(residuals, kde=True)
-plt.title("Distribution of Residuals")
-plt.xlabel("Residuals (Actual - Predicted)")
-plt.ylabel("Frequency")
-plt.grid(True)
-plt.show()
+void checkVotingEligibility(int age) {
+  print('\n  Checking voting eligibility for age: $age');
+  if (age >= 18) {
+    print('    Eligible to vote!');
+  } else {
+    print('    Not eligible to vote yet.');
+  }
+}
 
-plt.figure(figsize=(12, 6))
-plt.scatter(y_pred, residuals, alpha=0.7)
-plt.axhline(y=0, color='r', linestyle='--')
-plt.xlabel("Predicted CO2 Emissions")
-plt.ylabel("Residuals")
-plt.title("Residuals vs. Predicted Values")
-plt.grid(True)
-plt.show()
+void printDayOfWeek(int day) {
+  print('\n  Printing day of week for number: $day');
+  switch (day) {
+    case 1:
+      print('    Monday');
+      break;
+    case 2:
+      print('    Tuesday');
+      break;
+    case 3:
+      print('    Wednesday');
+      break;
+    case 4:
+      print('    Thursday');
+      break;
+    case 5:
+      print('    Friday');
+      break;
+    case 6:
+      print('    Saturday');
+      break;
+    case 7:
+      print('    Sunday');
+      break;
+    default:
+      print('    Invalid day number. Please enter a number between 1 and 7.');
+  }
+}
 
-# --- 5. Ethical Reflection ---
+void forLoopExample() {
+  for (int i = 1; i <= 10; i++) {
+    stdout.write('$i '); // Use stdout.write to print on the same line
+  }
+  print(''); // New line after the loop
+}
 
-# How might bias in your data affect outcomes?
-# 1. Historical Data Bias: If the historical data for CO2 emissions or related features
-#    (like GDP, energy consumption) is skewed towards certain regions, countries, or
-#    economic periods, the model might not generalize well to underrepresented areas
-#    or future scenarios that differ significantly from the past.
-# 2. Feature Selection Bias: If crucial features influencing CO2 emissions (e.g.,
-#    policy changes, technological advancements, natural disasters) are not included,
-#    the model's predictions could be inaccurate or misleading.
-# 3. Data Collection Inconsistencies: Variations in how data was collected across
-#    different sources or over time can introduce noise and bias.
-# Consequences of Bias:
-# - Policies based on biased forecasts might unfairly burden certain regions or
-#   industries, or fail to address the true drivers of emissions in others.
-# - Over- or under-estimation of emissions could lead to ineffective climate actions.
+void whileLoopExample() {
+  int i = 10;
+  while (i >= 1) {
+    stdout.write('$i ');
+    i--;
+  }
+  print('');
+}
 
-# How does your solution promote fairness and sustainability?
-# 1. Informed Policy Making: By providing a forecast of CO2 emissions, the model helps
-#    governments and organizations understand potential future trends. This allows for
-#    proactive development of policies and interventions (e.g., carbon taxes,
-#    renewable energy incentives) to mitigate climate change.
-# 2. Resource Allocation: Accurate forecasts can help in allocating resources more
-#    effectively towards sustainable initiatives, such as investment in green
-#    technologies or climate resilience projects.
-# 3. Accountability: The model can serve as a tool for monitoring the effectiveness
-#    of current climate policies and holding stakeholders accountable for their
-#    emission reduction targets.
-# 4. Awareness and Education: Visualizing emission trends can raise public awareness
-#    about climate change and encourage sustainable behaviors.
-# 5. Iterative Improvement: The model can be continuously updated with new data and
-#    refined to improve its accuracy, adapting to changing global dynamics and
-#    technological advancements.
+void doWhileLoopExample() {
+  int i = 1;
+  do {
+    stdout.write('$i ');
+    i++;
+  } while (i <= 5);
+  print('');
+}
 
-# --- Example of making a prediction for a future year (Stretch Goal) ---
-# Assuming 2024 as the last year in our training data, let's predict for 2025.
-# We'd need to estimate the input features for 2025. This highlights the dependency on future data.
-# For simplicity, let's extrapolate based on the last year's trends from our synthetic data.
+// --- Combining Data Types and Control Flow ---
 
-last_year_data = data.iloc[-1]
-future_year = last_year_data['Year'] + 1 # Predict for 2024 based on 2023 data
+void complexExample() {
+  print('\n  Complex Example: List Iteration with Conditions and Categorization');
+  List<int> numbers = [7, 24, 150, 2, 99, 11, 5, 200];
 
-# For a real prediction, these values would come from economic forecasts, population projections etc.
-# Here, we'll just slightly increment based on observed trends or make a reasonable guess.
-future_gdp_per_capita = last_year_data['GDP_per_capita'] * 1.02 # Assuming 2% growth
-future_population_growth = last_year_data['Population_growth'] * 0.98 # Assuming slight decline
-future_energy_consumption_per_capita = last_year_data['Energy_consumption_per_capita'] * 1.01 # Assuming 1% growth
+  print('    Numbers in the list: $numbers');
 
-future_data = pd.DataFrame([[
-    future_year,
-    future_gdp_per_capita,
-    future_population_growth,
-    future_energy_consumption_per_capita
-]], columns=X.columns)
+  for (int number in numbers) {
+    print('\n    Processing number: $number');
 
-predicted_co2_2025 = model.predict(future_data)
+    // Check if the number is even or odd
+    if (number % 2 == 0) {
+      print('      Status: Even');
+    } else {
+      print('      Status: Odd');
+    }
 
-print(f"\n--- Future Prediction (Example) ---")
-print(f"Predicted CO2 Emissions for {int(future_year)}: {predicted_co2_2025[0]:.2f} metric tons per capita")
-
-# Note on Real-time Data / Deployment:
-# For real-time data, you would replace the synthetic data generation with API calls
-# to relevant data sources (e.g., World Bank API for economic indicators).
-# For deployment, frameworks like Flask or Streamlit would wrap this Python code
-# into a web application where users could input parameters and get predictions.
+    // Categorize numbers using a switch statement (can also be done with if-else if)
+    String category;
+    switch (number) {
+      case >= 1 and <= 10: // Using Dart 3's new patterns for ranges
+        category = 'Small';
+        break;
+      case >= 11 and <= 100:
+        category = 'Medium';
+        break;
+      case > 100: // For numbers greater than 100
+        category = 'Large';
+        break;
+      default: // Handles negative numbers or zero if they were in the list
+        category = 'Uncategorized (outside 1-10, 11-100, 101+)';
+        break;
+    }
+    print('      Category: $category');
+  }
+}
