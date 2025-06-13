@@ -1,217 +1,343 @@
-import 'dart:io'; // Required for stdin.readLineSync() if you want interactive input
+import 'dart:io'; // For File, Directory
+import 'dart:convert'; // For jsonEncode, jsonDecode
 
-void main() {
-  print('--- DART WEEK ONE IMPLEMENTATION ---');
+// --- 1. String Manipulation ---
+void demonstrateStringManipulation() {
+  print('\n--- String Manipulation ---');
 
-  // 1. Data Types Implementation:
-  print('\n--- 1. Data Types Implementation ---');
-  defineVariables();
-  typeConversionExamples();
-  convertAndDisplay('123');
-  convertAndDisplay('98.76');
-  convertAndDisplay('abc'); // Test with invalid input
+  String s1 = 'Hello';
+  String s2 = 'Dart';
+  String s3 = 'Programming';
 
-  // 2. Control Flow:
-  print('\n--- 2. Control Flow ---');
-  checkNumber(10);
-  checkNumber(-5);
-  checkNumber(0);
+  // Concatenation
+  String concatenatedString = s1 + ', ' + s2 + ' ' + s3 + '!';
+  print('Concatenation: $concatenatedString');
 
-  checkVotingEligibility(20);
-  checkVotingEligibility(17);
+  // Interpolation
+  String interpolatedString = 'The language is $s2 and we are doing $s3.';
+  print('Interpolation: $interpolatedString');
 
-  printDayOfWeek(1);
-  printDayOfWeek(5);
-  printDayOfWeek(7);
-  printDayOfWeek(9); // Test invalid input
+  // Substring Extraction
+  String sub1 = concatenatedString.substring(7, 11); // "Dart"
+  String sub2 = concatenatedString.substring(12); // "Programming!"
+  print('Substring (7,11): "$sub1"');
+  print('Substring (12 to end): "$sub2"');
 
-  print('\nFor Loop (1 to 10):');
-  forLoopExample();
+  // Case Conversion
+  String upperCase = interpolatedString.toUpperCase();
+  String lowerCase = interpolatedString.toLowerCase();
+  print('Uppercase: $upperCase');
+  print('Lowercase: $lowerCase');
 
-  print('\nWhile Loop (10 to 1):');
-  whileLoopExample();
+  // Reverse a string
+  String original = 'Racecar';
+  String reversed = original.split('').reversed.join();
+  print('Original: "$original", Reversed: "$reversed"');
 
-  print('\nDo-While Loop (1 to 5):');
-  doWhileLoopExample();
-
-  // 3. Combining Data Types and Control Flow:
-  print('\n--- 3. Combining Data Types and Control Flow ---');
-  complexExample();
+  // Count length
+  print('Length of "$concatenatedString": ${concatenatedString.length}');
 }
 
-// --- Data Types Implementation ---
+// --- 2. Collections (Lists, Sets, Maps) ---
+void demonstrateCollections() {
+  print('\n--- Collections ---');
 
-void defineVariables() {
-  print('\n  Defining Variables:');
-  int myInt = 42;
-  double myDouble = 3.14159;
-  String myString = 'Hello, Dart!';
-  bool myBool = true;
-  List<int> myList = [1, 2, 3, 4, 5];
+  // --- Lists ---
+  print('\n  --- Lists (Ordered, allows duplicates) ---');
+  List<String> fruits = ['Apple', 'Banana', 'Cherry', 'Apple'];
+  print('Initial fruits: $fruits');
 
-  print('    int: $myInt');
-  print('    double: $myDouble');
-  print('    String: "$myString"');
-  print('    bool: $myBool');
-  print('    List: $myList');
+  // Add
+  fruits.add('Date');
+  print('After adding Date: $fruits');
+
+  // Remove
+  fruits.remove('Banana'); // Removes the first occurrence
+  print('After removing Banana: $fruits');
+
+  // Access by index
+  print('Fruit at index 0: ${fruits[0]}');
+
+  // Iterate
+  print('Iterating fruits:');
+  for (String fruit in fruits) {
+    print('- $fruit');
+  }
+
+  // When to use: When order matters, and you need to access items by index, or duplicates are allowed.
+
+  // --- Sets ---
+  print('\n  --- Sets (Unordered, no duplicates) ---');
+  Set<int> uniqueNumbers = {10, 20, 30, 20, 40}; // 20 will only be stored once
+  print('Initial unique numbers: $uniqueNumbers');
+
+  // Add
+  uniqueNumbers.add(50);
+  uniqueNumbers.add(10); // Adding a duplicate has no effect
+  print('After adding 50 and 10: $uniqueNumbers');
+
+  // Remove
+  uniqueNumbers.remove(30);
+  print('After removing 30: $uniqueNumbers');
+
+  // Check presence
+  print('Contains 40? ${uniqueNumbers.contains(40)}');
+
+  // Iterate
+  print('Iterating unique numbers:');
+  for (int number in uniqueNumbers) {
+    print('- $number');
+  }
+
+  // When to use: When you need a collection of unique items and order doesn't matter,
+  // or for fast membership testing.
+
+  // --- Maps ---
+  print('\n  --- Maps (Key-value pairs, keys are unique) ---');
+  Map<String, String> contacts = {
+    'Alice': '123-4567',
+    'Bob': '987-6543',
+    'Charlie': '555-1234',
+  };
+  print('Initial contacts: $contacts');
+
+  // Add/Update
+  contacts['David'] = '111-2222';
+  contacts['Alice'] = '000-0000'; // Updates Alice's number
+  print('After adding David and updating Alice: $contacts');
+
+  // Remove
+  contacts.remove('Bob');
+  print('After removing Bob: $contacts');
+
+  // Access by key
+  print('Charlie\'s number: ${contacts['Charlie']}');
+
+  // Iterate (keys and values)
+  print('Iterating contacts:');
+  contacts.forEach((name, phone) {
+    print('- $name: $phone');
+  });
+
+  // When to use: When you need to store data as key-value pairs,
+  // for fast lookup by a unique key.
 }
 
-void typeConversionExamples() {
-  print('\n  Type Conversion Examples:');
+// --- 3. File Handling ---
+Future<void> demonstrateFileHandling() async {
+  print('\n--- File Handling ---');
 
-  // Convert String to int and double
-  String strNumInt = '123';
-  String strNumDouble = '45.67';
+  final String inputFilePath = 'input.txt';
+  final String outputFilePath = 'output.txt';
 
+  // --- Writing to a file (creating if it doesn't exist, overwriting if it does) ---
+  print('\n  Writing to $inputFilePath...');
   try {
-    int parsedInt = int.parse(strNumInt);
-    double parsedDouble = double.parse(strNumDouble);
-    print('    String "$strNumInt" to int: $parsedInt');
-    print('    String "$strNumDouble" to double: $parsedDouble');
+    File inputFile = File(inputFilePath);
+    await inputFile.writeAsString('Hello from Dart!\nThis is line 2.\n');
+    await inputFile.writeAsStringSync('This is a synchronously written line.\n', mode: FileMode.append);
+    print('  Successfully wrote data to $inputFilePath');
   } catch (e) {
-    print('    Error converting string to number: $e');
+    print('  Error writing to file $inputFilePath: $e');
   }
 
-  // Convert int to String and double
-  int numInt = 100;
-  String intToStr = numInt.toString();
-  double intToDouble = numInt.toDouble(); // Or simply (numInt * 1.0)
-  print('    int $numInt to String: "$intToStr"');
-  print('    int $numInt to double: $intToDouble');
-}
-
-void convertAndDisplay(String numberString) {
-  print('\n  Function: convertAndDisplay("$numberString")');
+  // --- Reading from a file ---
+  print('\n  Reading from $inputFilePath...');
   try {
-    int? intValue = int.tryParse(numberString); // Use tryParse for safer conversion
-    double? doubleValue = double.tryParse(numberString);
-
-    if (intValue != null) {
-      print('    Converted to int: $intValue');
+    File inputFile = File(inputFilePath);
+    if (await inputFile.exists()) {
+      String content = await inputFile.readAsString();
+      print('  Content of $inputFilePath:\n$content');
     } else {
-      print('    Could not convert "$numberString" to int.');
-    }
-
-    if (doubleValue != null) {
-      print('    Converted to double: $doubleValue');
-    } else {
-      print('    Could not convert "$numberString" to double.');
+      print('  File $inputFilePath does not exist.');
     }
   } catch (e) {
-    print('    An unexpected error occurred during conversion: $e');
+    print('  Error reading from file $inputFilePath: $e');
+  }
+
+  // --- Writing new data to another file ---
+  print('\n  Writing new data to $outputFilePath...');
+  try {
+    File outputFile = File(outputFilePath);
+    await outputFile.writeAsString('This is new data written to $outputFilePath.\n');
+    print('  Successfully wrote new data to $outputFilePath');
+  } catch (e) {
+    print('  Error writing to file $outputFilePath: $e');
+  }
+
+  // --- Demonstrating error handling for non-existent file ---
+  print('\n  Attempting to read from a non-existent file (error handling demo)...');
+  final String nonExistentFilePath = 'non_existent_file.txt';
+  try {
+    File nonExistentFile = File(nonExistentFilePath);
+    String content = await nonExistentFile.readAsString();
+    print('  Content: $content');
+  } on FileSystemException catch (e) {
+    print('  Caught FileSystemException: ${e.message} (Path: ${e.path})');
+  } catch (e) {
+    print('  Caught generic error: $e');
   }
 }
 
-// --- Control Flow ---
+// --- 4. Date and Time ---
+void demonstrateDateAndTime() {
+  print('\n--- Date and Time ---');
 
-void checkNumber(int number) {
-  print('\n  Checking number: $number');
-  if (number > 0) {
-    print('    The number is positive.');
-  } else if (number < 0) {
-    print('    The number is negative.');
-  } else {
-    print('    The number is zero.');
+  // Current Date and Time
+  DateTime now = DateTime.now();
+  print('Current DateTime: $now'); // Default format
+
+  // Create specific DateTime
+  DateTime specificDate = DateTime(2024, 7, 20, 14, 30, 0); // Year, Month, Day, Hour, Minute, Second
+  print('Specific DateTime: $specificDate');
+
+  // Format (using toString() for default, for custom use intl package as shown in exercise)
+  String formattedDate = now.toIso8601String(); // ISO 8601 format
+  print('Formatted (ISO 8601): $formattedDate');
+
+  // Parse a string to DateTime
+  String dateString = '2023-01-25 10:00:00Z'; // Z indicates UTC
+  DateTime parsedDate = DateTime.parse(dateString);
+  print('Parsed DateTime from string: $parsedDate');
+
+  // Manipulate Dates (add/subtract days, hours, etc.)
+  DateTime futureDate = now.add(Duration(days: 7, hours: 3));
+  DateTime pastDate = now.subtract(Duration(days: 5));
+  print('Future date (+7 days, 3 hours): $futureDate');
+  print('Past date (-5 days): $pastDate');
+
+  // Calculate difference between two dates
+  DateTime date1 = DateTime(2025, 1, 15);
+  DateTime date2 = DateTime(2025, 2, 1);
+  Duration difference = date2.difference(date1);
+  print('Difference between $date1 and $date2:');
+  print('  Days: ${difference.inDays}');
+  print('  Hours: ${difference.inHours}');
+}
+
+// --- 5. Exercise: Combine Utilities for a Small Application ---
+
+// A simple model for our log entry
+class LogEntry {
+  String originalInput;
+  String reversedInput;
+  String upperCaseInput;
+  int length;
+  DateTime timestamp;
+
+  LogEntry({
+    required this.originalInput,
+    required this.reversedInput,
+    required this.upperCaseInput,
+    required this.length,
+    required this.timestamp,
+  });
+
+  // Convert LogEntry to a Map for JSON serialization
+  Map<String, dynamic> toJson() => {
+        'originalInput': originalInput,
+        'reversedInput': reversedInput,
+        'upperCaseInput': upperCaseInput,
+        'length': length,
+        'timestamp': timestamp.toIso8601String(), // Store DateTime as ISO 8601 string
+      };
+
+  // Create LogEntry from a Map (for JSON deserialization)
+  factory LogEntry.fromJson(Map<String, dynamic> json) {
+    return LogEntry(
+      originalInput: json['originalInput'] as String,
+      reversedInput: json['reversedInput'] as String,
+      upperCaseInput: json['upperCaseInput'] as String,
+      length: json['length'] as int,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+    );
+  }
+
+  @override
+  String toString() {
+    return 'Input: "$originalInput"\n'
+           '  Reversed: "$reversedInput"\n'
+           '  Uppercase: "$upperCaseInput"\n'
+           '  Length: $length\n'
+           '  Timestamp: ${timestamp.toLocal().toIso8601String()}\n';
   }
 }
 
-void checkVotingEligibility(int age) {
-  print('\n  Checking voting eligibility for age: $age');
-  if (age >= 18) {
-    print('    Eligible to vote!');
-  } else {
-    print('    Not eligible to vote yet.');
-  }
-}
+Future<void> runSmallApplication() async {
+  print('\n--- Small Application: String Processor & Logger ---');
 
-void printDayOfWeek(int day) {
-  print('\n  Printing day of week for number: $day');
-  switch (day) {
-    case 1:
-      print('    Monday');
-      break;
-    case 2:
-      print('    Tuesday');
-      break;
-    case 3:
-      print('    Wednesday');
-      break;
-    case 4:
-      print('    Thursday');
-      break;
-    case 5:
-      print('    Friday');
-      break;
-    case 6:
-      print('    Saturday');
-      break;
-    case 7:
-      print('    Sunday');
-      break;
-    default:
-      print('    Invalid day number. Please enter a number between 1 and 7.');
-  }
-}
+  List<LogEntry> logEntries = [];
+  final String logFilePath = 'app_log.json';
 
-void forLoopExample() {
-  for (int i = 1; i <= 10; i++) {
-    stdout.write('$i '); // Use stdout.write to print on the same line
+  // --- Load existing data from file if it exists ---
+  try {
+    File logFile = File(logFilePath);
+    if (await logFile.exists()) {
+      String content = await logFile.readAsString();
+      List<dynamic> jsonList = jsonDecode(content);
+      logEntries = jsonList.map((item) => LogEntry.fromJson(item)).toList();
+      print('Loaded ${logEntries.length} entries from $logFilePath.');
+    }
+  } on FileSystemException catch (e) {
+    print('No existing log file found or error loading: ${e.message}');
+  } catch (e) {
+    print('An unexpected error occurred loading log file: $e');
   }
-  print(''); // New line after the loop
-}
 
-void whileLoopExample() {
-  int i = 10;
-  while (i >= 1) {
-    stdout.write('$i ');
-    i--;
-  }
-  print('');
-}
-
-void doWhileLoopExample() {
-  int i = 1;
+  // --- Perform string manipulation on user input ---
+  print('\nEnter text (type "exit" to quit):');
+  String? userInput;
   do {
-    stdout.write('$i ');
-    i++;
-  } while (i <= 5);
-  print('');
+    stdout.write('> ');
+    userInput = stdin.readLineSync();
+
+    if (userInput != null && userInput.toLowerCase() != 'exit' && userInput.isNotEmpty) {
+      // String manipulation
+      String reversed = userInput.split('').reversed.join();
+      String upperCase = userInput.toUpperCase();
+      int length = userInput.length;
+      DateTime timestamp = DateTime.now(); // Log entry time
+
+      // Store results in a collection
+      LogEntry newEntry = LogEntry(
+        originalInput: userInput,
+        reversedInput: reversed,
+        upperCaseInput: upperCase,
+        length: length,
+        timestamp: timestamp,
+      );
+      logEntries.add(newEntry);
+      print('  Processed and added entry. Total entries: ${logEntries.length}');
+      print('  Last entry details:\n$newEntry');
+    }
+  } while (userInput != null && userInput.toLowerCase() != 'exit');
+
+  // --- Save the data to a file ---
+  print('\nSaving all data to $logFilePath...');
+  try {
+    File logFile = File(logFilePath);
+    // Convert list of LogEntry objects to a list of Maps, then to JSON string
+    String jsonString = jsonEncode(logEntries.map((e) => e.toJson()).toList());
+    await logFile.writeAsString(jsonString);
+    print('Successfully saved ${logEntries.length} entries to $logFilePath');
+  } catch (e) {
+    print('Error saving data to file: $e');
+  }
+
+  print('\n--- Application Finished ---');
+  print('All collected entries:');
+  logEntries.forEach((entry) => print(entry));
 }
 
-// --- Combining Data Types and Control Flow ---
 
-void complexExample() {
-  print('\n  Complex Example: List Iteration with Conditions and Categorization');
-  List<int> numbers = [7, 24, 150, 2, 99, 11, 5, 200];
+// Main function to run all demonstrations
+void main() async {
+  // Run individual topic demonstrations
+  demonstrateStringManipulation();
+  demonstrateCollections();
+  await demonstrateFileHandling(); // Await file operations
+  demonstrateDateAndTime();
 
-  print('    Numbers in the list: $numbers');
-
-  for (int number in numbers) {
-    print('\n    Processing number: $number');
-
-    // Check if the number is even or odd
-    if (number % 2 == 0) {
-      print('      Status: Even');
-    } else {
-      print('      Status: Odd');
-    }
-
-    // Categorize numbers using a switch statement (can also be done with if-else if)
-    String category;
-    switch (number) {
-      case >= 1 && <= 10: // Using Dart 3's new patterns for ranges
-        category = 'Small';
-        break;
-      case >= 11 && <= 100:
-        category = 'Medium';
-        break;
-      case > 100: // For numbers greater than 100
-        category = 'Large';
-        break;
-      default: // Handles negative numbers or zero if they were in the list
-        category = 'Uncategorized (outside 1-10, 11-100, 101+)';
-        break;
-    }
-    print('      Category: $category');
-  }
+  // Run the combined exercise application
+  await runSmallApplication(); // Await the application's execution
 }
