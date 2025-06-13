@@ -1,343 +1,116 @@
-import 'dart:io'; // For File, Directory
-import 'dart:convert'; // For jsonEncode, jsonDecode
+import 'package:flutter/material.dart';
 
-// --- 1. String Manipulation ---
-void demonstrateStringManipulation() {
-  print('\n--- String Manipulation ---');
-
-  String s1 = 'Hello';
-  String s2 = 'Dart';
-  String s3 = 'Programming';
-
-  // Concatenation
-  String concatenatedString = s1 + ', ' + s2 + ' ' + s3 + '!';
-  print('Concatenation: $concatenatedString');
-
-  // Interpolation
-  String interpolatedString = 'The language is $s2 and we are doing $s3.';
-  print('Interpolation: $interpolatedString');
-
-  // Substring Extraction
-  String sub1 = concatenatedString.substring(7, 11); // "Dart"
-  String sub2 = concatenatedString.substring(12); // "Programming!"
-  print('Substring (7,11): "$sub1"');
-  print('Substring (12 to end): "$sub2"');
-
-  // Case Conversion
-  String upperCase = interpolatedString.toUpperCase();
-  String lowerCase = interpolatedString.toLowerCase();
-  print('Uppercase: $upperCase');
-  print('Lowercase: $lowerCase');
-
-  // Reverse a string
-  String original = 'Racecar';
-  String reversed = original.split('').reversed.join();
-  print('Original: "$original", Reversed: "$reversed"');
-
-  // Count length
-  print('Length of "$concatenatedString": ${concatenatedString.length}');
+void main() {
+  runApp(const MyApp());
 }
 
-// --- 2. Collections (Lists, Sets, Maps) ---
-void demonstrateCollections() {
-  print('\n--- Collections ---');
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
-  // --- Lists ---
-  print('\n  --- Lists (Ordered, allows duplicates) ---');
-  List<String> fruits = ['Apple', 'Banana', 'Cherry', 'Apple'];
-  print('Initial fruits: $fruits');
-
-  // Add
-  fruits.add('Date');
-  print('After adding Date: $fruits');
-
-  // Remove
-  fruits.remove('Banana'); // Removes the first occurrence
-  print('After removing Banana: $fruits');
-
-  // Access by index
-  print('Fruit at index 0: ${fruits[0]}');
-
-  // Iterate
-  print('Iterating fruits:');
-  for (String fruit in fruits) {
-    print('- $fruit');
-  }
-
-  // When to use: When order matters, and you need to access items by index, or duplicates are allowed.
-
-  // --- Sets ---
-  print('\n  --- Sets (Unordered, no duplicates) ---');
-  Set<int> uniqueNumbers = {10, 20, 30, 20, 40}; // 20 will only be stored once
-  print('Initial unique numbers: $uniqueNumbers');
-
-  // Add
-  uniqueNumbers.add(50);
-  uniqueNumbers.add(10); // Adding a duplicate has no effect
-  print('After adding 50 and 10: $uniqueNumbers');
-
-  // Remove
-  uniqueNumbers.remove(30);
-  print('After removing 30: $uniqueNumbers');
-
-  // Check presence
-  print('Contains 40? ${uniqueNumbers.contains(40)}');
-
-  // Iterate
-  print('Iterating unique numbers:');
-  for (int number in uniqueNumbers) {
-    print('- $number');
-  }
-
-  // When to use: When you need a collection of unique items and order doesn't matter,
-  // or for fast membership testing.
-
-  // --- Maps ---
-  print('\n  --- Maps (Key-value pairs, keys are unique) ---');
-  Map<String, String> contacts = {
-    'Alice': '123-4567',
-    'Bob': '987-6543',
-    'Charlie': '555-1234',
-  };
-  print('Initial contacts: $contacts');
-
-  // Add/Update
-  contacts['David'] = '111-2222';
-  contacts['Alice'] = '000-0000'; // Updates Alice's number
-  print('After adding David and updating Alice: $contacts');
-
-  // Remove
-  contacts.remove('Bob');
-  print('After removing Bob: $contacts');
-
-  // Access by key
-  print('Charlie\'s number: ${contacts['Charlie']}');
-
-  // Iterate (keys and values)
-  print('Iterating contacts:');
-  contacts.forEach((name, phone) {
-    print('- $name: $phone');
-  });
-
-  // When to use: When you need to store data as key-value pairs,
-  // for fast lookup by a unique key.
-}
-
-// --- 3. File Handling ---
-Future<void> demonstrateFileHandling() async {
-  print('\n--- File Handling ---');
-
-  final String inputFilePath = 'input.txt';
-  final String outputFilePath = 'output.txt';
-
-  // --- Writing to a file (creating if it doesn't exist, overwriting if it does) ---
-  print('\n  Writing to $inputFilePath...');
-  try {
-    File inputFile = File(inputFilePath);
-    await inputFile.writeAsString('Hello from Dart!\nThis is line 2.\n');
-    await inputFile.writeAsStringSync('This is a synchronously written line.\n', mode: FileMode.append);
-    print('  Successfully wrote data to $inputFilePath');
-  } catch (e) {
-    print('  Error writing to file $inputFilePath: $e');
-  }
-
-  // --- Reading from a file ---
-  print('\n  Reading from $inputFilePath...');
-  try {
-    File inputFile = File(inputFilePath);
-    if (await inputFile.exists()) {
-      String content = await inputFile.readAsString();
-      print('  Content of $inputFilePath:\n$content');
-    } else {
-      print('  File $inputFilePath does not exist.');
-    }
-  } catch (e) {
-    print('  Error reading from file $inputFilePath: $e');
-  }
-
-  // --- Writing new data to another file ---
-  print('\n  Writing new data to $outputFilePath...');
-  try {
-    File outputFile = File(outputFilePath);
-    await outputFile.writeAsString('This is new data written to $outputFilePath.\n');
-    print('  Successfully wrote new data to $outputFilePath');
-  } catch (e) {
-    print('  Error writing to file $outputFilePath: $e');
-  }
-
-  // --- Demonstrating error handling for non-existent file ---
-  print('\n  Attempting to read from a non-existent file (error handling demo)...');
-  final String nonExistentFilePath = 'non_existent_file.txt';
-  try {
-    File nonExistentFile = File(nonExistentFilePath);
-    String content = await nonExistentFile.readAsString();
-    print('  Content: $content');
-  } on FileSystemException catch (e) {
-    print('  Caught FileSystemException: ${e.message} (Path: ${e.path})');
-  } catch (e) {
-    print('  Caught generic error: $e');
-  }
-}
-
-// --- 4. Date and Time ---
-void demonstrateDateAndTime() {
-  print('\n--- Date and Time ---');
-
-  // Current Date and Time
-  DateTime now = DateTime.now();
-  print('Current DateTime: $now'); // Default format
-
-  // Create specific DateTime
-  DateTime specificDate = DateTime(2024, 7, 20, 14, 30, 0); // Year, Month, Day, Hour, Minute, Second
-  print('Specific DateTime: $specificDate');
-
-  // Format (using toString() for default, for custom use intl package as shown in exercise)
-  String formattedDate = now.toIso8601String(); // ISO 8601 format
-  print('Formatted (ISO 8601): $formattedDate');
-
-  // Parse a string to DateTime
-  String dateString = '2023-01-25 10:00:00Z'; // Z indicates UTC
-  DateTime parsedDate = DateTime.parse(dateString);
-  print('Parsed DateTime from string: $parsedDate');
-
-  // Manipulate Dates (add/subtract days, hours, etc.)
-  DateTime futureDate = now.add(Duration(days: 7, hours: 3));
-  DateTime pastDate = now.subtract(Duration(days: 5));
-  print('Future date (+7 days, 3 hours): $futureDate');
-  print('Past date (-5 days): $pastDate');
-
-  // Calculate difference between two dates
-  DateTime date1 = DateTime(2025, 1, 15);
-  DateTime date2 = DateTime(2025, 2, 1);
-  Duration difference = date2.difference(date1);
-  print('Difference between $date1 and $date2:');
-  print('  Days: ${difference.inDays}');
-  print('  Hours: ${difference.inHours}');
-}
-
-// --- 5. Exercise: Combine Utilities for a Small Application ---
-
-// A simple model for our log entry
-class LogEntry {
-  String originalInput;
-  String reversedInput;
-  String upperCaseInput;
-  int length;
-  DateTime timestamp;
-
-  LogEntry({
-    required this.originalInput,
-    required this.reversedInput,
-    required this.upperCaseInput,
-    required this.length,
-    required this.timestamp,
-  });
-
-  // Convert LogEntry to a Map for JSON serialization
-  Map<String, dynamic> toJson() => {
-        'originalInput': originalInput,
-        'reversedInput': reversedInput,
-        'upperCaseInput': upperCaseInput,
-        'length': length,
-        'timestamp': timestamp.toIso8601String(), // Store DateTime as ISO 8601 string
-      };
-
-  // Create LogEntry from a Map (for JSON deserialization)
-  factory LogEntry.fromJson(Map<String, dynamic> json) {
-    return LogEntry(
-      originalInput: json['originalInput'] as String,
-      reversedInput: json['reversedInput'] as String,
-      upperCaseInput: json['upperCaseInput'] as String,
-      length: json['length'] as int,
-      timestamp: DateTime.parse(json['timestamp'] as String),
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'My Simple Flutter App', // Title for the app in the task switcher
+      theme: ThemeData(
+        primarySwatch: Colors.blue, // Defines the primary color swatch for the app
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        // Ensures the app looks good on different platforms
+      ),
+      home: const MyHomePage(), // Sets the home screen of the app
     );
+  }
+}
+
+class MyHomePage extends StatelessWidget {
+  const MyHomePage({super.key});
+
+  // A method to be executed when the ElevatedButton is pressed
+  void _onButtonPressed() {
+    // This message will appear in the console (e.g., VS Code's Debug Console, or terminal where 'flutter run' is active)
+    print('ElevatedButton clicked! A message from the console!');
   }
 
   @override
-  String toString() {
-    return 'Input: "$originalInput"\n'
-           '  Reversed: "$reversedInput"\n'
-           '  Uppercase: "$upperCaseInput"\n'
-           '  Length: $length\n'
-           '  Timestamp: ${timestamp.toLocal().toIso8601String()}\n';
+  Widget build(BuildContext context) {
+    return Scaffold(
+      // 1. Title bar with the name of the app
+      appBar: AppBar(
+        title: const Text(
+          'My Awesome App', // Text displayed in the app bar
+          style: TextStyle(color: Colors.white), // Ensures text is visible on blue background
+        ),
+        backgroundColor: Colors.blue, // Sets the background color of the AppBar
+        centerTitle: true, // Centers the title text in the AppBar
+      ),
+      body: Center(
+        // 2. A centered column
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center, // Aligns children to the center vertically
+          crossAxisAlignment: CrossAxisAlignment.center, // Aligns children to the center horizontally
+          children: <Widget>[
+            // 2.1. A Text widget displaying a welcome message
+            const Text(
+              'Welcome to My Simple Flutter App!',
+              textAlign: TextAlign.center, // Centers the text itself if it wraps
+              style: TextStyle(
+                fontSize: 24, // Larger font size for the welcome message
+                fontWeight: FontWeight.bold, // Bold text
+                color: Colors.deepPurple, // Custom text color
+              ),
+            ),
+            const SizedBox(height: 30), // Provides vertical spacing after the Text widget
+
+            // 2.2. An ElevatedButton widget
+            ElevatedButton(
+              onPressed: _onButtonPressed, // Calls _onButtonPressed when the button is clicked
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white, // Color of the button's text/icon
+                backgroundColor: Colors.green, // Background color of the button
+                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15), // Internal padding
+                textStyle: const TextStyle(fontSize: 18), // Text style for the button's label
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10), // Adds rounded corners to the button
+                ),
+              ),
+              child: const Text('Click Me!'), // The text displayed on the button
+            ),
+            const SizedBox(height: 30), // Provides vertical spacing after the ElevatedButton
+
+            // 2.3. An Image widget that loads and displays an image from the internet
+            // Using a random image from a public placeholder service (Lorem Picsum)
+            Image.network(
+              'https://picsum.photos/250/250?random=1', // URL of the image to load
+              width: 250, // Sets the width of the image
+              height: 250, // Sets the height of the image
+              fit: BoxFit.cover, // How the image should be inscribed into the box
+              // Optional: loadingBuilder to show a progress indicator while loading
+              loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                if (loadingProgress == null) return child; // Image is fully loaded
+                return Center(
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                        : null,
+                  ),
+                );
+              },
+              // Optional: errorBuilder to show an error message if image fails to load
+              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                return const Text(
+                  'Could not load image. Check internet connection.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.red),
+                );
+              },
+            ),
+            const SizedBox(height: 20), // Spacing below the Image widget
+            const Text(
+              'A random image from the internet!',
+              style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+            ),
+          ],
+        ),
+      ),
+    );
   }
-}
-
-Future<void> runSmallApplication() async {
-  print('\n--- Small Application: String Processor & Logger ---');
-
-  List<LogEntry> logEntries = [];
-  final String logFilePath = 'app_log.json';
-
-  // --- Load existing data from file if it exists ---
-  try {
-    File logFile = File(logFilePath);
-    if (await logFile.exists()) {
-      String content = await logFile.readAsString();
-      List<dynamic> jsonList = jsonDecode(content);
-      logEntries = jsonList.map((item) => LogEntry.fromJson(item)).toList();
-      print('Loaded ${logEntries.length} entries from $logFilePath.');
-    }
-  } on FileSystemException catch (e) {
-    print('No existing log file found or error loading: ${e.message}');
-  } catch (e) {
-    print('An unexpected error occurred loading log file: $e');
-  }
-
-  // --- Perform string manipulation on user input ---
-  print('\nEnter text (type "exit" to quit):');
-  String? userInput;
-  do {
-    stdout.write('> ');
-    userInput = stdin.readLineSync();
-
-    if (userInput != null && userInput.toLowerCase() != 'exit' && userInput.isNotEmpty) {
-      // String manipulation
-      String reversed = userInput.split('').reversed.join();
-      String upperCase = userInput.toUpperCase();
-      int length = userInput.length;
-      DateTime timestamp = DateTime.now(); // Log entry time
-
-      // Store results in a collection
-      LogEntry newEntry = LogEntry(
-        originalInput: userInput,
-        reversedInput: reversed,
-        upperCaseInput: upperCase,
-        length: length,
-        timestamp: timestamp,
-      );
-      logEntries.add(newEntry);
-      print('  Processed and added entry. Total entries: ${logEntries.length}');
-      print('  Last entry details:\n$newEntry');
-    }
-  } while (userInput != null && userInput.toLowerCase() != 'exit');
-
-  // --- Save the data to a file ---
-  print('\nSaving all data to $logFilePath...');
-  try {
-    File logFile = File(logFilePath);
-    // Convert list of LogEntry objects to a list of Maps, then to JSON string
-    String jsonString = jsonEncode(logEntries.map((e) => e.toJson()).toList());
-    await logFile.writeAsString(jsonString);
-    print('Successfully saved ${logEntries.length} entries to $logFilePath');
-  } catch (e) {
-    print('Error saving data to file: $e');
-  }
-
-  print('\n--- Application Finished ---');
-  print('All collected entries:');
-  logEntries.forEach((entry) => print(entry));
-}
-
-
-// Main function to run all demonstrations
-void main() async {
-  // Run individual topic demonstrations
-  demonstrateStringManipulation();
-  demonstrateCollections();
-  await demonstrateFileHandling(); // Await file operations
-  demonstrateDateAndTime();
-
-  // Run the combined exercise application
-  await runSmallApplication(); // Await the application's execution
 }
