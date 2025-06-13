@@ -1,90 +1,99 @@
 # -*- coding: utf-8 -*-
 """
-AI Tools Assignment - Part 2, Task 1: Classical ML with Scikit-learn
-Dataset: Iris Species Dataset
-Goal: Preprocess, train Decision Tree, evaluate.
+AI Tools Assignment - Bonus Task: Deploy Your Model
+Tool: Streamlit
+Goal: Create a web interface for the MNIST classifier.
 """
 
-# Import necessary libraries
-import pandas as pd
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import accuracy_score, precision_score, recall_score, classification_report
+import streamlit as st
+import tensorflow as tf
 import numpy as np
+from PIL import Image # Pillow library for image processing
 
-print("--- Task 1: Classical ML with Scikit-learn ---")
+print("--- Bonus Task: Deploy Your MNIST Classifier with Streamlit ---")
 
-# 1. Load the Iris Species Dataset
-# The Iris dataset is well-known and often used for classification examples.
-# It's clean and doesn't typically require extensive missing value handling.
-iris = load_iris()
-X = iris.data
-y = iris.target
-feature_names = iris.feature_names
-target_names = iris.target_names
+# --- 1. Load the pre-trained MNIST CNN model ---
+# Ensure you have saved your model from Part 2, Task 2 (e.g., as 'mnist_cnn_model.h5')
+# If you saved it in the newer SavedModel format, just use the directory name.
+try:
+    # Attempt to load the model. Replace 'mnist_cnn_model.h5' with your saved model's path/name
+    model = tf.keras.models.load_model('mnist_cnn_model.h5')
+    st.success("MNIST CNN Model loaded successfully!")
+    print("Model loaded.")
+except Exception as e:
+    st.error(f"Error loading model: {e}")
+    st.info("Please ensure 'mnist_cnn_model.h5' is in the same directory and saved correctly after Task 2.")
+    st.stop() # Stop the app if model loading fails
 
-print("\nDataset loaded successfully.")
-print(f"Features (X) shape: {X.shape}")
-print(f"Target (y) shape: {y.shape}")
-print(f"Feature names: {feature_names}")
-print(f"Target names: {target_names}")
+# --- 2. Streamlit UI Setup ---
+st.set_page_config(
+    page_title="MNIST Digit Classifier",
+    page_icon="✍️",
+    layout="centered",
+    initial_sidebar_state="expanded"
+)
 
-# Convert to DataFrame for easier inspection (optional, but good practice)
-df = pd.DataFrame(X, columns=feature_names)
-df['species'] = y
-print("\nFirst 5 rows of the dataset:")
-print(df.head())
+st.title("✍️ MNIST Handwritten Digit Classifier")
+st.markdown("Upload an image of a handwritten digit (0-9) and let the AI predict it!")
 
-# 2. Preprocess the data (handle missing values, encode labels)
-# The Iris dataset is clean; no missing values to handle here.
-# Target labels (y) are already encoded as integers (0, 1, 2), which is suitable for Scikit-learn.
-print("\nData preprocessing step:")
-if np.isnan(X).sum() == 0:
-    print("No missing values found in the dataset.")
-else:
-    print("Missing values found and handled (e.g., imputation or removal).") # Placeholder if dataset needed handling
+st.sidebar.header("About This App")
+st.sidebar.info(
+    "This app demonstrates the deployment of a Convolutional Neural Network (CNN) "
+    "trained on the MNIST dataset using TensorFlow. "
+    "Upload a square image (preferably 28x28 grayscale) containing a single digit."
+)
+st.sidebar.markdown("[GitHub Repo (coming soon!)](#)") # Placeholder for GitHub link
 
-# 3. Split the data into training and testing sets
-# A common split is 80% for training and 20% for testing.
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
-# stratify=y ensures that the proportion of target labels is the same in train and test sets.
+# --- 3. Image Upload Section ---
+uploaded_file = st.file_uploader("Choose an image...", type=["png", "jpg", "jpeg"])
 
-print(f"\nData split into training and testing sets:")
-print(f"X_train shape: {X_train.shape}")
-print(f"X_test shape: {X_test.shape}")
-print(f"y_train shape: {y_train.shape}")
-print(f"y_test shape: {y_test.shape}")
+if uploaded_file is not None:
+    # Display the uploaded image
+    image = Image.open(uploaded_file).convert("L") # Convert to grayscale
+    st.image(image, caption="Uploaded Image", use_column_width=True, width=150)
+    st.write("")
+    st.write("Classifying...")
+
+    # --- 4. Preprocess the image for the model ---
+    try:
+        # Resize image to 28x28 pixels
+        image = image.resize((28, 28))
+        # Convert image to numpy array
+        img_array = np.array(image)
+        # Normalize pixel values to 0-1 range
+        img_array = img_array / 255.0
+        # Reshape to (1, 28, 28, 1) to match model input shape (batch_size, height, width, channels)
+        img_array = img_array.reshape(1, 28, 28, 1)
+
+        st.success("Image preprocessed successfully!")
+        # Optional: show preprocessed image for debugging
+        # st.image(img_array.reshape(28,28), caption="Preprocessed (28x28 grayscale)", width=100)
+
+        # --- 5. Make a prediction ---
+        predictions = model.predict(img_array)
+        predicted_class = np.argmax(predictions)
+        confidence = np.max(predictions) * 100 # Convert to percentage
+
+        st.subheader("Prediction:")
+        st.write(f"The model predicts this is a: **{predicted_class}**")
+        st.write(f"Confidence: **{confidence:.2f}%**")
+
+        # Display probabilities for all classes
+        st.markdown("---")
+        st.subheader("All Class Probabilities:")
+        prob_df = pd.DataFrame({
+            'Digit': range(10),
+            'Probability': [f"{p*100:.2f}%" for p in predictions[0]]
+        })
+        # Sort by probability for better readability
+        prob_df = prob_df.sort_values(by='Probability', ascending=False)
+        st.dataframe(prob_df, hide_index=True)
 
 
-# 4. Train a Decision Tree Classifier
-print("\nTraining Decision Tree Classifier...")
-decision_tree_model = DecisionTreeClassifier(random_state=42)
-decision_tree_model.fit(X_train, y_train)
-print("Decision Tree Classifier trained.")
+    except Exception as e:
+        st.error(f"Error during image processing or prediction: {e}")
+        st.info("Please ensure the uploaded image is suitable for a digit classifier.")
 
-# 5. Make predictions on the test set
-y_pred = decision_tree_model.predict(X_test)
-
-# 6. Evaluate the model using accuracy, precision, and recall
-print("\nModel Evaluation:")
-
-# Accuracy
-accuracy = accuracy_score(y_test, y_pred)
-print(f"Accuracy: {accuracy:.4f}")
-
-# Precision, Recall, and F1-Score for each class, and overall averages.
-# 'weighted' average is suitable for imbalanced datasets, but 'macro' or 'micro' could also be used.
-# For multi-class classification, `precision_score` and `recall_score` need `average` parameter.
-precision = precision_score(y_test, y_pred, average='weighted')
-recall = recall_score(y_test, y_pred, average='weighted')
-
-print(f"Precision (weighted): {precision:.4f}")
-print(f"Recall (weighted): {recall:.4f}")
-
-# Detailed classification report
-print("\nClassification Report:")
-print(classification_report(y_test, y_pred, target_names=target_names))
-
-print("\n--- Task 1 Complete ---")
+st.markdown("---")
+st.caption("Developed as part of the AI Tools Assignment: Mastering the AI Toolkit.")
 
