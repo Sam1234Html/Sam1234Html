@@ -1,26 +1,27 @@
 # MERN Bug Tracker Application
 
-This is a full-stack MERN (MongoDB, Express.js, React.js, Node.js) application designed to track bugs within a project. It demonstrates best practices for testing (unit, integration, component) and debugging in both backend and frontend environments, along with robust error handling.
+This project is a simple MERN (MongoDB, Express.js, React, Node.js) stack application designed to track bugs. It demonstrates a systematic approach to testing and debugging, including unit, integration, and component tests, as well as robust error handling and various debugging techniques.
 
 ## Features
 
-- Report new bugs with details (title, description, status).
-- View a list of all reported bugs.
-- Update bug statuses (Open, In-Progress, Resolved).
-- Delete bugs.
+* **Report New Bugs:** Users can submit new bug reports with a title, description, status, and priority.
+* **View Bugs:** A list of all reported bugs is displayed.
+* **Update Bug Status:** Users can change the status of existing bugs (e.g., 'open', 'in-progress', 'resolved').
+* **Delete Bugs:** Bugs can be permanently removed from the system.
 
-## Technologies Used
+## Project Setup and Installation
 
-- **Backend:** Node.js, Express.js, MongoDB, Mongoose
-- **Frontend:** React.js, React Router DOM, Axios
-- **Testing:** Jest, Supertest, React Testing Library
-- **Debugging:** Console logs, Chrome DevTools, Node.js Inspector
+**Prerequisites:**
 
-## Project Setup
+* Node.js (LTS version recommended)
+* npm (Node Package Manager) or Yarn
+* MongoDB instance (local or a cloud service like MongoDB Atlas)
+
+**Steps:**
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/your-username/mern-bug-tracker.git](https://github.com/your-username/mern-bug-tracker.git)
+    git clone <your-repo-url>
     cd mern-bug-tracker
     ```
 
@@ -28,104 +29,41 @@ This is a full-stack MERN (MongoDB, Express.js, React.js, Node.js) application d
     ```bash
     cd backend
     npm install
-    # Create a .env file with your MongoDB URI:
-    # MONGODB_URI=mongodb://localhost:27017/bugtracker_db
-    # Or use a cloud-based MongoDB Atlas URI
-    npm start
     ```
-    The backend server will run on `http://localhost:5000`.
+    Create a `.env` file in the `backend` directory and add your MongoDB URI and port:
+    ```
+    MONGO_URI=mongodb://localhost:27017/bugtracker_test_db # Use a dedicated test DB for local development
+    PORT=5000
+    NODE_ENV=development
+    ```
+    (Replace `mongodb://localhost:27017/bugtracker_test_db` with your MongoDB Atlas connection string if using a cloud MongoDB instance.)
+
+    **Run Backend:**
+    ```bash
+    npm run dev  # For development with nodemon (auto-restarts on file changes)
+    # or
+    npm start    # For production
+    ```
+    The backend server will typically run on `http://localhost:5000`.
 
 3.  **Frontend Setup:**
     ```bash
     cd ../frontend
     npm install
+    ```
+    Ensure your `src/services/bugService.js` is configured to point to your backend API URL (e.g., `http://localhost:5000/api/bugs`).
+
+    **Run Frontend:**
+    ```bash
     npm start
     ```
-    The frontend application will run on `http://localhost:3000`.
+    The React application will open in your default browser, typically at `http://localhost:3000`.
 
 ## Running Tests
 
 ### Backend Tests
 
-1.  Navigate to the `backend` directory: `cd backend`
-2.  Run all backend tests:
-    ```bash
-    npm test
-    ```
-3.  To run tests in watch mode (re-runs on file changes):
-    ```bash
-    npm test -- --watch
-    ```
-
-### Frontend Tests
-
-1.  Navigate to the `frontend` directory: `cd frontend`
-2.  Run all frontend tests:
-    ```bash
-    npm test
-    ```
-3.  To run tests in watch mode:
-    ```bash
-    npm test -- --watch
-    ```
-
-## Debugging Techniques Used
-
-### Backend Debugging (Node.js)
-
--   **Console Logs:** Used `console.log()` at various points in `bugController.js` and `bugRoutes.js` to inspect variable values and execution flow.
--   **Node.js Inspector (VS Code/Chrome DevTools):**
-    -   To start the backend with the inspector:
-        ```bash
-        node --inspect-brk server.js
-        ```
-    -   Open Chrome, navigate to `chrome://inspect`, and click "Open dedicated DevTools for Node". You can set breakpoints in your server-side code (e.g., `bugController.js`, `server.js`) and step through execution.
-    -   In VS Code, you can set breakpoints directly in your files and run with the "Run and Debug" (F5) feature for Node.js.
-
-### Frontend Debugging (React)
-
--   **Console Logs:** Extensively used `console.log()` in React components (`BugForm.js`, `BugList.js`) and API services (`bugService.js`) to track component state, prop values, and API responses.
--   **Chrome DevTools:**
-    -   **Console Tab:** Essential for viewing all JavaScript errors, warnings, and `console.log` output.
-    -   **Elements Tab:** Used to inspect the rendered HTML structure, CSS, and React component tree (with React DevTools extension).
-    -   **Components Tab (React DevTools):** Crucial for inspecting React component state, props, and hooks in real-time.
-    -   **Network Tab:** Used to monitor all API requests (GET, POST, PUT, DELETE) to the backend, inspect request payloads, response data, and HTTP status codes, helping diagnose issues with API communication.
-    -   **Sources Tab:** For setting breakpoints in React component code (`.js`, `.jsx` files), stepping through execution, and inspecting variable values.
-
-### Error Handling
-
--   **Backend:**
-    -   An Express error handling middleware (`errorHandler.js`) is implemented to catch and centralize error responses, providing consistent JSON error messages to the client.
--   **Frontend:**
-    -   An `ErrorBoundary` component is implemented in React to gracefully catch JavaScript errors in its child component tree, preventing the entire UI from crashing and displaying a fallback UI instead. This enhances user experience by preventing blank screens.
-
-## Testing Approach and Coverage
-
-This project emphasizes a comprehensive testing strategy:
-
--   **Unit Tests:**
-    -   **Backend:** Individual helper functions (e.g., `isValidBugData` for validation) are tested in isolation to ensure their logic is correct.
-    -   **Frontend:** Individual React components (`BugForm`, `BugItem`) are tested to ensure their rendering, state management, and event handling work as expected. Mocking is used for external dependencies (like API calls).
-
--   **Integration Tests:**
-    -   **Backend:** API routes are tested using `Supertest` to verify that they interact correctly with the database and return appropriate responses. Database calls are mocked using `jest-mock` to isolate the API logic from the actual database.
-    -   **Frontend:** Higher-level components or application flows are tested to ensure that UI elements trigger correct API calls and update the UI accordingly. This often involves mocking Axios for API responses.
-
--   **Component Tests:** (Often considered part of Unit/Integration for frontend)
-    -   Specific React components are rendered and tested for user interactions (e.g., form submission, button clicks) and how they update their internal state and display information.
-
-**Test Coverage:**
-While a full coverage report isn't automatically generated in this README, the test files aim to cover:
--   All CRUD operations for bugs on the backend.
--   Validation logic for bug data.
--   Form submission and input handling on the frontend.
--   Displaying lists of bugs and individual bug details.
--   Handling various UI states (loading, error, empty).
-
-## Well-Structured and Maintainable Code
-
--   Clear separation of concerns (models, controllers, routes, middleware for backend; components, services, pages for frontend).
--   Consistent naming conventions.
--   Use of environment variables for sensitive information.
--   Modular and reusable components/functions.
-
+Navigate to the `backend` directory and run:
+```bash
+cd backend
+npm test
