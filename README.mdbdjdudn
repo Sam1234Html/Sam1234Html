@@ -1,114 +1,224 @@
-import React, { useState } from 'react';
+import 'dart:io';
 
-function BugForm({ onBugReported }) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [status, setStatus] = useState('Open'); // Default status
+void main() {
+  // --- Data Types Implementation ---
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    // Basic validation
-    if (!title.trim() || !description.trim()) {
-      alert('Please fill in both title and description.');
-      return;
-    }
+  // Define Variables:
+  int age = 30;
+  double price = 99.99;
+  String name = "Alice";
+  bool isActive = true;
+  List<String> fruits = ["Apple", "Banana", "Cherry"];
 
-    const newBug = { title, description, status };
+  print("--- Data Types ---");
+  print("Age: $age (Type: ${age.runtimeType})");
+  print("Price: $price (Type: ${price.runtimeType})");
+  print("Name: $name (Type: ${name.runtimeType})");
+  print("Is Active: $isActive (Type: ${isActive.runtimeType})");
+  print("Fruits: $fruits (Type: ${fruits.runtimeType})");
+  print('\n');
 
+  // Type Conversion Functions:
+  print("--- Type Conversion ---");
+  // Convert String to int and double
+  int? stringToInt(String s) {
     try {
-      // In a real application, you would send this to your backend API
-      // Example using fetch (replace with your actual API endpoint)
-      const response = await fetch('http://localhost:5000/api/bugs', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newBug),
-      });
-
-      if (!response.ok) {
-        // Handle HTTP errors
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to report bug');
-      }
-
-      const reportedBug = await response.json();
-      console.log('Bug reported:', reportedBug);
-
-      // Call a prop function to notify parent component (e.g., to refresh list)
-      if (onBugReported) {
-        onBugReported(reportedBug);
-      }
-
-      // Clear form
-      setTitle('');
-      setDescription('');
-      setStatus('Open');
-      alert('Bug reported successfully!');
-
-    } catch (error) {
-      console.error('Error reporting bug:', error.message);
-      alert('Error reporting bug: ' + error.message);
+      return int.parse(s);
+    } catch (e) {
+      print("Error converting '$s' to int: $e");
+      return null;
     }
-  };
+  }
 
-  return (
-    <div style={{ padding: '20px', border: '1px solid #ccc', borderRadius: '8px', maxWidth: '500px', margin: '20px auto' }}>
-      <h2>Report New Bug</h2>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '10px' }}>
-          <label htmlFor="title" style={{ display: 'block', marginBottom: '5px' }}>Title:</label>
-          <input
-            type="text"
-            id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-            style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-          />
-        </div>
-        <div style={{ marginBottom: '10px' }}>
-          <label htmlFor="description" style={{ display: 'block', marginBottom: '5px' }}>Description:</label>
-          <textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-            rows="4"
-            style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-          ></textarea>
-        </div>
-        <div style={{ marginBottom: '20px' }}>
-          <label htmlFor="status" style={{ display: 'block', marginBottom: '5px' }}>Status:</label>
-          <select
-            id="status"
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-          >
-            <option value="Open">Open</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Resolved">Resolved</option>
-            <option value="Closed">Closed</option>
-          </select>
-        </div>
-        <button
-          type="submit"
-          style={{
-            backgroundColor: '#4CAF50',
-            color: 'white',
-            padding: '10px 15px',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '16px'
-          }}
-        >
-          Report Bug
-        </button>
-      </form>
-    </div>
-  );
+  double? stringToDouble(String s) {
+    try {
+      return double.parse(s);
+    } catch (e) {
+      print("Error converting '$s' to double: $e");
+      return null;
+    }
+  }
+
+  // Convert int to String and double
+  String intToString(int i) {
+    return i.toString();
+  }
+
+  double intToDouble(int i) {
+    return i.toDouble();
+  }
+
+  // Example usage of type conversion functions
+  String numStr = "123";
+  String doubleStr = "45.67";
+  int myInt = 500;
+
+  print("Converting '$numStr' to int: ${stringToInt(numStr)}");
+  print("Converting '$doubleStr' to double: ${stringToDouble(doubleStr)}");
+  print("Converting $myInt to String: ${intToString(myInt)}");
+  print("Converting $myInt to double: ${intToDouble(myInt)}");
+  print('\n');
+
+  // Function for Conversion: convertAndDisplay
+  print("--- Function for Conversion ---");
+  convertAndDisplay("789");
+  convertAndDisplay("98.76");
+  convertAndDisplay("hello"); // This will demonstrate error handling
+  print('\n');
+
+  // --- Control Flow ---
+
+  // If-Else Statements: Number classification
+  print("--- Control Flow: If-Else ---");
+  void checkNumber(int num) {
+    if (num > 0) {
+      print("$num is positive.");
+    } else if (num < 0) {
+      print("$num is negative.");
+    } else {
+      print("$num is zero.");
+    }
+  }
+
+  checkNumber(10);
+  checkNumber(-5);
+  checkNumber(0);
+  print('\n');
+
+  // If-Else Statements: Voting eligibility
+  void checkVotingEligibility(int personAge) {
+    if (personAge >= 18) {
+      print("A person of age $personAge is eligible to vote.");
+    } else {
+      print("A person of age $personAge is not eligible to vote.");
+    }
+  }
+
+  checkVotingEligibility(20);
+  checkVotingEligibility(16);
+  print('\n');
+
+  // Switch Case: Day of the week
+  print("--- Control Flow: Switch Case ---");
+  void printDayOfWeek(int day) {
+    switch (day) {
+      case 1:
+        print("Monday");
+        break;
+      case 2:
+        print("Tuesday");
+        break;
+      case 3:
+        print("Wednesday");
+        break;
+      case 4:
+        print("Thursday");
+        break;
+      case 5:
+        print("Friday");
+        break;
+      case 6:
+        print("Saturday");
+        break;
+      case 7:
+        print("Sunday");
+        break;
+      default:
+        print("Invalid day number. Please enter a number between 1 and 7.");
+    }
+  }
+
+  printDayOfWeek(3);
+  printDayOfWeek(7);
+  printDayOfWeek(9);
+  print('\n');
+
+  // Loops:
+  print("--- Control Flow: Loops ---");
+
+  // For loop from 1 to 10
+  print("For loop (1 to 10):");
+  for (int i = 1; i <= 10; i++) {
+    stdout.write("$i ");
+  }
+  print('\n');
+
+  // While loop from 10 to 1
+  print("While loop (10 to 1):");
+  int j = 10;
+  while (j >= 1) {
+    stdout.write("$j ");
+    j--;
+  }
+  print('\n');
+
+  // Do-While loop from 1 to 5
+  print("Do-While loop (1 to 5):");
+  int k = 1;
+  do {
+    stdout.write("$k ");
+    k++;
+  } while (k <= 5);
+  print('\n');
+  print('\n');
+
+  // --- Combining Data Types and Control Flow ---
+  print("--- Combining Data Types and Control Flow ---");
+
+  List<int> numbers = [5, 12, 100, 2, 7, 150, 42, 1, 10];
+
+  for (int number in numbers) {
+    print("Processing number: $number");
+
+    // Check if even or odd
+    if (number % 2 == 0) {
+      print("$number is even.");
+    } else {
+      print("$number is odd.");
+    }
+
+    // Categorize numbers using switch statement
+    String category;
+    if (number >= 1 && number <= 10) {
+      category = "small";
+    } else if (number >= 11 && number <= 100) {
+      category = "medium";
+    } else {
+      category = "large";
+    }
+
+    switch (category) {
+      case "small":
+        print("$number is a small number (1-10).");
+        break;
+      case "medium":
+        print("$number is a medium number (11-100).");
+        break;
+      case "large":
+        print("$number is a large number (101+).");
+        break;
+      default:
+        print("Category not defined for $number."); // Should not be reached with current logic
+    }
+    print("---"); // Separator for clarity
+  }
 }
 
-export default BugForm;
+// Function definition for convertAndDisplay (placed outside main but callable from it)
+void convertAndDisplay(String strNum) {
+  print("Attempting to convert '$strNum':");
+  int? intResult = int.tryParse(strNum);
+  double? doubleResult = double.tryParse(strNum);
+
+  if (intResult != null) {
+    print("Converted to int: $intResult");
+  } else {
+    print("Could not convert to int.");
+  }
+
+  if (doubleResult != null) {
+    print("Converted to double: $doubleResult");
+  } else {
+    print("Could not convert to double.");
+  }
+}
